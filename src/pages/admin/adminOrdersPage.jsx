@@ -121,7 +121,7 @@ export default function AdminOrdersPage() {
 												{item.address}
 											</td>
 											<td className="px-4 py-3">
-												{`LKR ${item.total.toFixed(2)}`}
+												{`USD ${item.total.toFixed(2)}`}
 											</td>
                                             <td className="px-4 py-3 text-center">
                                                 {item.status}
@@ -151,3 +151,4 @@ export default function AdminOrdersPage() {
 	);
 
 }
+
