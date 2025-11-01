@@ -64,11 +64,11 @@ export default function CartPage() {
             <div className="w-full lg:w-[180px] lg:h-full flex flex-row lg:flex-col items-center justify-center">
               {item.labelledPrice > item.price && (
                 <span className="text-secondary text-lg line-through lg:w-full text-center lg:text-right pr-[10px] lg:mt-[20px]">
-                  LKR {item.labelledPrice.toFixed(2)}
+                  USD {item.labelledPrice.toFixed(2)}
                 </span>
               )}
               <span className="font-semibold text-accent text-2xl lg:w-full text-center lg:text-right pr-[10px] lg:mt-[5px]">
-                LKR {item.price.toFixed(2)}
+                USD {item.price.toFixed(2)}
               </span>
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function CartPage() {
           </Link>
           <div className="h-[50px] flex items-center">
             <span className="font-semibold text-accent text-2xl lg:text-right lg:pr-[10px]">
-              Total: LKR {getTotal().toFixed(2)}
+              Total: USD {getTotal().toFixed(2)}
             </span>
           </div>
         </div>
