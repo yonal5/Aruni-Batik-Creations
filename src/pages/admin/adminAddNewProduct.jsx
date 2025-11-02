@@ -195,20 +195,15 @@ export default function AddProductPage() {
 								}}
 								className="h-11 rounded-xl border border-secondary/20 bg-white px-3 text-secondary outline-none focus:border-accent focus:ring-4 focus:ring-accent/20 transition"
 							>
-								<option value="Cream">Cream</option>
-								<option value="Lotion">Lotion</option>
-								<option value="Serum">Serum</option>
-								<option value="Keyboard">Keyboard</option>
-								<option value="Mouse">Mouse</option>
-								<option value="Motherboard">Motherboard</option>
-								<option value="Grapics card">Grapics Card</option>
-								<option value="Gaming case">Gaming Case</option>
-								<option value="Pc pribild">PC Pre Bilde</option>
-								<option value="Cooler">Cooler</option>
-								<option value="Power Supply">Power Supply</option>
-								<option value="CPU">CPU</option>
-								<option value="Ram">Ram</option>
-								<option value="Storage">Storage</option>
+							<option value="">All categories</option>
+           					<option value="Website blue">Website Blue</option>
+							<option value="Website green">Website Green</option>
+							<option value="Website red">Website Red</option>
+							<option value="Website yellow">Website Yellow</option>
+		  					<option value="Website perple">Website Perple</option>
+			 				<option value="Website orenge">Website Orenge</option>
+							<option value="Website black">Website Black</option>
+							<option value="Website blue">Website Blue</option>
 
 							</select>
 						</label>
