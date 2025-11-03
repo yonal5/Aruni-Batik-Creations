@@ -7,30 +7,27 @@ export default function CheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ✅ Cart items passed from Cart page
   const [cart, setCart] = useState(location.state || []);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Account & Website info
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
     websiteName: "",
-    color: "",
+    color: "Green", // now name instead of hex
     theme: "light",
     logo: null,
     domain: "",
     note: "",
   });
 
-  // ✅ Pre-fill account info if user logged in
+  // prefill if user logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-
     axios
-      .get(`${import.meta.env.VITE_API_URL}/api/account`, {
+      .get(import.meta.env.VITE_API_URL + "/api/account", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -44,17 +41,12 @@ export default function CheckoutPage() {
       .catch(() => {});
   }, []);
 
-  // ✅ Input change handler
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "logo") {
-      setFormData({ ...formData, logo: files[0] });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    if (name === "logo") setFormData({ ...formData, logo: files[0] });
+    else setFormData({ ...formData, [name]: value });
   };
 
-  // ✅ Quantity change for cart items
   const handleQuantityChange = (index, delta) => {
     const newCart = [...cart];
     newCart[index].quantity += delta;
@@ -62,12 +54,8 @@ export default function CheckoutPage() {
     setCart(newCart);
   };
 
-  // ✅ Calculate total
-  const getTotal = () => {
-    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  };
+  const getTotal = () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  // ✅ Checkout handler
   const handleCheckout = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -77,11 +65,10 @@ export default function CheckoutPage() {
     }
 
     if (cart.length === 0) {
-      toast.error("Your cart is empty!");
+      toast.error("Cart is empty!");
       return;
     }
 
-    // Create FormData for file + data
     const orderData = new FormData();
     for (const key in formData) {
       orderData.append(key, formData[key]);
@@ -90,13 +77,11 @@ export default function CheckoutPage() {
 
     setLoading(true);
     try {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/orders`,
-        orderData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.post(import.meta.env.VITE_API_URL + "/api/orders", orderData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       toast.success("Order placed successfully!");
-      navigate("/thank-you"); // Redirect after order placed
+      navigate("/"); // redirect home
     } catch (err) {
       toast.error("Failed to place order");
       console.error(err);
@@ -108,44 +93,27 @@ export default function CheckoutPage() {
   return (
     <div className="w-full min-h-screen flex justify-center items-start pt-10 bg-gray-100">
       <div className="bg-white p-6 rounded-xl shadow-lg w-[600px] flex flex-col gap-6">
-        <h2 className="text-2xl font-bold text-center mb-4">
-          Checkout & Website Info
-        </h2>
+        <h2 className="text-2xl font-bold text-center mb-4">Checkout & Website Info</h2>
 
-        {/* ✅ Cart Items */}
+        {/* Cart Items */}
         <h3 className="font-semibold">Cart Items</h3>
         {cart.map((item, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between border p-2 rounded"
-          >
+          <div key={index} className="flex items-center justify-between border p-2 rounded">
             <div>
               <span className="font-semibold">{item.name}</span> <br />
               <span className="text-sm text-gray-500">{item.productID}</span>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleQuantityChange(index, -1)}
-                className="px-2 border rounded"
-              >
-                -
-              </button>
+              <button onClick={() => handleQuantityChange(index, -1)}>-</button>
               <span>{item.quantity}</span>
-              <button
-                onClick={() => handleQuantityChange(index, 1)}
-                className="px-2 border rounded"
-              >
-                +
-              </button>
+              <button onClick={() => handleQuantityChange(index, 1)}>+</button>
             </div>
             <div>${(item.price * item.quantity).toFixed(2)}</div>
           </div>
         ))}
-        <div className="text-right font-bold">
-          Total: ${getTotal().toFixed(2)}
-        </div>
+        <div className="text-right font-bold">Total: ${getTotal().toFixed(2)}</div>
 
-        {/* ✅ Account Info */}
+        {/* Account Info */}
         <h3 className="font-semibold mt-4">Account Information</h3>
         <input
           type="text"
@@ -174,7 +142,7 @@ export default function CheckoutPage() {
           className="border p-2 rounded w-full"
         />
 
-        {/* ✅ Website Info */}
+        {/* Website Info */}
         <h3 className="font-semibold mt-4">Website Information</h3>
         <input
           type="text"
@@ -185,16 +153,17 @@ export default function CheckoutPage() {
           required
           className="border p-2 rounded w-full"
         />
-
-        <input
-          type="text"
-          name="color"
-          value={formData.color}
-          onChange={handleChange}
-          placeholder="Theme Color (e.g. Blue, Green)"
-          className="border p-2 rounded w-full"
-        />
-
+        <div>
+          <label className="text-sm block mb-1">Theme Color (Name)</label>
+          <input
+            type="text"
+            name="color"
+            value={formData.color}
+            onChange={handleChange}
+            placeholder="Green, Blue, etc."
+            className="border p-2 rounded w-full"
+          />
+        </div>
         <div>
           <label className="text-sm block mb-1">Theme</label>
           <select
@@ -207,18 +176,10 @@ export default function CheckoutPage() {
             <option value="dark">Dark</option>
           </select>
         </div>
-
         <div>
           <label className="text-sm block mb-1">Upload Logo</label>
-          <input
-            type="file"
-            name="logo"
-            accept="image/*"
-            onChange={handleChange}
-            className="w-full"
-          />
+          <input type="file" name="logo" accept="image/*" onChange={handleChange} />
         </div>
-
         <input
           type="text"
           name="domain"
@@ -227,7 +188,6 @@ export default function CheckoutPage() {
           placeholder="Domain Name (optional)"
           className="border p-2 rounded w-full"
         />
-
         <textarea
           name="note"
           value={formData.note}
@@ -237,11 +197,11 @@ export default function CheckoutPage() {
           className="border p-2 rounded w-full"
         />
 
-        {/* ✅ Checkout Button */}
+        {/* Checkout Button */}
         <button
           onClick={handleCheckout}
           disabled={loading}
-          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mt-2"
+          className="bg-accent text-white py-2 rounded hover:bg-accent/80 mt-2"
         >
           {loading ? "Placing Order..." : "Checkout"}
         </button>
@@ -249,5 +209,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-
