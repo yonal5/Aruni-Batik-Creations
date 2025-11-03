@@ -124,11 +124,11 @@ export default function CheckoutPage() {
 							<div className="w-full lg:w-[180px] lg:h-full items-center justify-center  flex flex-row lg:flex-col">
 								{item.labelledPrice > item.price && (
 									<span className="text-secondary lg:w-full   text-center  lg:text-right line-through text-lg pr-[10px] lg:mt-[20px]">
-										USD {item.labelledPrice.toFixed(2)}
+										LKR {item.labelledPrice.toFixed(2)}
 									</span>
 								)}
 								<span className="font-semibold text-accent  lg:w-full text-center  lg:text-right text-2xl pr-[10px] lg:mt-[5px]">
-									USD {item.price.toFixed(2)}
+									LKR {item.price.toFixed(2)}
 								</span>
 							</div>
 						</div>
@@ -176,7 +176,7 @@ export default function CheckoutPage() {
 					</button>
 					<div className="h-[50px]">
 						<span className="font-semibold text-accent w-full text-right text-2xl pr-[10px] mt-[5px]">
-							Total: USD {getTotal().toFixed(2)}
+							Total: LKR {getTotal().toFixed(2)}
 						</span>
 					</div>
 				</div>
