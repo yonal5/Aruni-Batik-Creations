@@ -1,186 +1,213 @@
-import { CiCircleChevDown, CiCircleChevUp } from "react-icons/ci";
-
-import { BiTrash } from "react-icons/bi";
-import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 
 export default function CheckoutPage() {
-	const location = useLocation();
-	const navigate = useNavigate()
-	const [address, setAddress] = useState("");
-	const [name, setName] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
 
+  // Cart items passed from Cart page
+  const [cart, setCart] = useState(location.state || []);
+  const [loading, setLoading] = useState(false);
 
-	const [cart, setCart] = useState(location.state);
+  // Account & Website info
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    websiteName: "",
+    color: "#ffffff",
+    theme: "light",
+    logo: null,
+    domain: "",
+    note: "",
+  });
 
-	function getTotal() {
-		let total = 0;
-		cart.forEach((item) => {
-			total += item.price * item.quantity;
-		});
-		return total;
-	}
+  // Pre-fill account info if user logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-	async function purchaseCart(){
-		const token = localStorage.getItem("token");
-		if(token == null){
-			toast.error("Please login to place an order");
-			navigate("/login");
-			return;
-		}
-		try{
-			const items = []
+    axios
+      .get(import.meta.env.VITE_API_URL + "/api/account", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setFormData((prev) => ({
+          ...prev,
+          fullName: res.data.fullName || "",
+          email: res.data.email || "",
+          phone: res.data.phone || "",
+        }));
+      })
+      .catch(() => {});
+  }, []);
 
-			for(let i=0; i<cart.length; i++){
-				items.push(
-					{
-						productID : cart[i].productID,
-						quantity : cart[i].quantity
-					}
-				)
-			}
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "logo") setFormData({ ...formData, logo: files[0] });
+    else setFormData({ ...formData, [name]: value });
+  };
 
-			await axios.post(import.meta.env.VITE_API_URL + "/api/orders",{
-				address : address,
-				customerName : name==""?null:name,
-				items: items
-			},{
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			})
+  const handleQuantityChange = (index, delta) => {
+    const newCart = [...cart];
+    newCart[index].quantity += delta;
+    if (newCart[index].quantity < 1) newCart[index].quantity = 1;
+    setCart(newCart);
+  };
 
-		toast.success("Order placed successfully");
-			
-		}catch(error){
-			toast.error("Failed to place order");
-			console.error(error);
+  const getTotal = () => {
+    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  };
 
-			//if error is 400
-			if(error.response && error.response.status == 400){
-						
-				toast.error(error.response.data.message)
+  const handleCheckout = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login first");
+      navigate("/login");
+      return;
+    }
 
-			}
-		}
-		
-	}
+    if (cart.length === 0) {
+      toast.error("Cart is empty!");
+      return;
+    }
 
-	return (
-		<div className="w-full lg:h-[calc(100vh-100px)] overflow-y-scroll bg-primary flex flex-col pt-[25px] items-center">
-			<div className="w-[400px] lg:w-[600px] flex flex-col gap-4 ">
-				{cart.map((item, index) => {
-					return (
-						<div
-							key={index}
-							className="w-full h-[300px] lg:h-[120px] bg-white flex flex-col lg:flex-row relative items-center p-3 lg:p-0"
-						>
-							<button
-								className="absolute  text-red-500 right-[-40px] text-2xl rounded-full aspect-square hover:bg-red-500 hover:text-white p-[5px] font-bold"
-								onClick={() => {}}
-							>
-								<BiTrash />
-							</button>
-							<img
-								className="h-[100px] lg:h-full aspect-square object-cover"
-								src={item.image}
-							/>
-							<div className="w-full text-center lg:w-[200px] h-[100px] lg:h-full flex flex-col pl-[5px] pt-[10px] ">
-								<h1 className=" font-semibold text-lg w-full text-wrap">
-									{item.name}
-								</h1>
-								{/* productID */}
-								<span className="text-sm text-secondary ">
-									{item.productID}
-								</span>
-							</div>
-							<div className="w-[100px] h-full flex flex-row lg:flex-col justify-center items-center ">
-								<CiCircleChevUp
-									className="text-3xl"
-									onClick={() => {
-										const newCart = [...cart];
+    const orderData = new FormData();
+    for (const key in formData) orderData.append(key, formData[key]);
+    orderData.append("cartItems", JSON.stringify(cart));
 
-										newCart[index].quantity += 1;
+    setLoading(true);
+    try {
+      await axios.post(import.meta.env.VITE_API_URL + "/api/orders/weborder", orderData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Order placed successfully!");
+      navigate("/"); // redirect to home or thank you page
+    } catch (err) {
+      toast.error("Failed to place order");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-										setCart(newCart);
-									}}
-								/>
-								<span className="font-semibold text-4xl">{item.quantity}</span>
-								<CiCircleChevDown
-									className="text-3xl"
-									onClick={() => {
-										const newCart = [...cart];
+  return (
+    <div className="w-full min-h-screen flex justify-center items-start pt-10 bg-gray-100">
+      <div className="bg-white p-6 rounded-xl shadow-lg w-[600px] flex flex-col gap-6">
+        <h2 className="text-2xl font-bold text-center mb-4">Checkout & Website Info</h2>
 
-										if (newCart[index].quantity > 1) {
-											newCart[index].quantity -= 1;
-										}
+        {/* Cart Items */}
+        <h3 className="font-semibold">Cart Items</h3>
+        {cart.map((item, index) => (
+          <div key={index} className="flex items-center justify-between border p-2 rounded">
+            <div>
+              <span className="font-semibold">{item.name}</span> <br />
+              <span className="text-sm text-gray-500">{item.productID}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => handleQuantityChange(index, -1)}>-</button>
+              <span>{item.quantity}</span>
+              <button onClick={() => handleQuantityChange(index, 1)}>+</button>
+            </div>
+            <div>${(item.price * item.quantity).toFixed(2)}</div>
+          </div>
+        ))}
+        <div className="text-right font-bold">Total: ${getTotal().toFixed(2)}</div>
 
-										setCart(newCart);
-									}}
-								/>
-							</div>
-							<div className="w-full lg:w-[180px] lg:h-full items-center justify-center  flex flex-row lg:flex-col">
-								{item.labelledPrice > item.price && (
-									<span className="text-secondary lg:w-full   text-center  lg:text-right line-through text-lg pr-[10px] lg:mt-[20px]">
-										LKR {item.labelledPrice.toFixed(2)}
-									</span>
-								)}
-								<span className="font-semibold text-accent  lg:w-full text-center  lg:text-right text-2xl pr-[10px] lg:mt-[5px]">
-									LKR {item.price.toFixed(2)}
-								</span>
-							</div>
-						</div>
-					);
-				})}
-				<div className="w-full border lg:w-full  bg-white flex flex-col    items-center relative">
-					<div className="w-full  h-full flex  justify-between items-center p-4">
-						<label
-							htmlFor="name"							
-							className="text-sm text-secondary mr-2"
-						>
-							Name
-						</label>
-						<input
-							type="text"
-							id="name"
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-							className="w-[400px] h-[50px] border border-secondary rounded-md px-3 text-center"
-						/>
-					</div>
-					<div className="w-full  h-full flex  justify-between items-center p-4">
-						<label
-							htmlFor="address"							
-							className="text-sm text-secondary mr-2"
-						>
-							Shipping Address
-						</label>
-						<textarea
-							type="text"
-							id="address"
-							value={address}
-							onChange={(e) => setAddress(e.target.value)}
-							className="w-[400px] h-[150px] border border-secondary rounded-md px-3 text-center"
-						/>
-					</div>
-				</div>
-				<div className="w-full lg:w-full h-[120px] bg-white flex flex-col-reverse  lg:flex-row justify-end items-center relative">
-					<button
-						to="/checkout"
-						onClick={purchaseCart}
-						className="lg:absolute left-0 bg-accent text-white px-6 py-3  lg:ml-[20px] hover:bg-accent/80"
-					>
-						Order
-					</button>
-					<div className="h-[50px]">
-						<span className="font-semibold text-accent w-full text-right text-2xl pr-[10px] mt-[5px]">
-							Total: LKR {getTotal().toFixed(2)}
-						</span>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+        {/* Account Info */}
+        <h3 className="font-semibold mt-4">Account Information</h3>
+        <input
+          type="text"
+          name="fullName"
+          value={formData.fullName}
+          onChange={handleChange}
+          placeholder="Full Name"
+          required
+          className="border p-2 rounded w-full"
+        />
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Email"
+          required
+          className="border p-2 rounded w-full"
+        />
+        <input
+          type="tel"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          placeholder="Phone Number"
+          className="border p-2 rounded w-full"
+        />
+
+        {/* Website Info */}
+        <h3 className="font-semibold mt-4">Website Information</h3>
+        <input
+          type="text"
+          name="websiteName"
+          value={formData.websiteName}
+          onChange={handleChange}
+          placeholder="Website Name"
+          required
+          className="border p-2 rounded w-full"
+        />
+        <div>
+          <label className="text-sm block mb-1">Theme Color</label>
+          <input
+            type="color"
+            name="color"
+            value={formData.color}
+            onChange={handleChange}
+            className="w-full h-10"
+          />
+        </div>
+        <div>
+          <label className="text-sm block mb-1">Theme</label>
+          <select
+            name="theme"
+            value={formData.theme}
+            onChange={handleChange}
+            className="border p-2 rounded w-full"
+          >
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div>
+          <label className="text-sm block mb-1">Upload Logo</label>
+          <input type="file" name="logo" accept="image/*" onChange={handleChange} />
+        </div>
+        <input
+          type="text"
+          name="domain"
+          value={formData.domain}
+          onChange={handleChange}
+          placeholder="Domain Name (optional)"
+          className="border p-2 rounded w-full"
+        />
+        <textarea
+          name="note"
+          value={formData.note}
+          onChange={handleChange}
+          placeholder="Additional Notes / Requirements"
+          rows="4"
+          className="border p-2 rounded w-full"
+        />
+
+        {/* Checkout Button */}
+        <button
+          onClick={handleCheckout}
+          disabled={loading}
+          className="bg-accent text-white py-2 rounded hover:bg-accent/80 mt-2"
+        >
+          {loading ? "Placing Order..." : "Checkout"}
+        </button>
+      </div>
+    </div>
+  );
 }
