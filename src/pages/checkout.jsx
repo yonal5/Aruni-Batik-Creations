@@ -91,7 +91,7 @@ export default function CheckoutPage() {
     setLoading(true);
     try {
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/orders/weborder`,
+        `${import.meta.env.VITE_API_URL}/api/orders`,
         orderData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -249,4 +249,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
 
