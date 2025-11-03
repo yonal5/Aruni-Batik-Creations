@@ -17,7 +17,7 @@ export default function CheckoutPage() {
     email: "",
     phone: "",
     websiteName: "",
-    color: "#ffffff",
+    color: "",
     theme: "light",
     logo: null,
     domain: "",
@@ -249,3 +249,4 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
