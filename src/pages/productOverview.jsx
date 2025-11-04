@@ -98,5 +98,4 @@ if (status === "error") return <h1 className="text-red-500">Failed to load produ
 			)}
 		</div>
 	);
-
 }

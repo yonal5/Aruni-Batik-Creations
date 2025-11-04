@@ -28,7 +28,7 @@ export default function ForgetPassword(){
         }
         try{
 
-            await axios.post(import.meta.env.VITE_API_URL + "/api/users/change-password",{
+            await axios.post(import.meta.env.VITE_fgfgfgfgf_URL + "/api/users/change-password",{
                 email: email,
                 otp: otp,
                 newPassword: newPassword

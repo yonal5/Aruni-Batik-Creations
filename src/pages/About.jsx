@@ -1,13 +1,18 @@
+import Header, { TtitleBar } from "../components/header";
+
 export default function About() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-primary via-orange-200 to-primary text-black flex flex-col items-center justify-center px-6 py-16">
+  return (<div>
+      <Header/>
+      <TtitleBar/>
+    <div className="min-h-screen bg-gradient-to-b from-primary via-blue-300 to-primary text-black flex flex-col items-center justify-center px-6 py-16">
+      
       <div className="max-w-4xl text-center">
-    
-        <h1 className="text-4xl md:text-5xl font-bold mb-6 text-orange-500">
+        
+        <h1 className="text-4xl md:text-5xl font-bold mb-6 text-accent">
           About Alipres
         </h1>
         <p className="text-black text-lg leading-relaxed mb-8">
-          Welcome to <span className="text-orange-400 font-semibold">Alipres</span> — 
+          Welcome to <span className="text-accent font-semibold">Alipres</span> — 
           your one-stop destination for the latest gaming tech, computer accessories, 
           and cutting-edge electronics. We’re passionate about bringing you the 
           best-quality gear at affordable prices, with a focus on reliability and performance.
@@ -22,6 +27,7 @@ export default function About() {
           “Technology made simple, stylish, and affordable.”
         </p>
       </div>
+    </div>
     </div>
   );
 }

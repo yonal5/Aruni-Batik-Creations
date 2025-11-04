@@ -1,104 +1,151 @@
-import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Loader } from "../components/loader";
+import Header, { TtitleBar } from "../components/header";
 
-export default function OrderPage() {
+export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  // Get token from localStorage (after login)
-  const token = localStorage.getItem("token");
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/orders", {
+    if (isLoading) {
+      const token = localStorage.getItem("token");
+      if (token == null) {
+        navigate("/login");
+        return;
+      }
+
+      axios
+        .get(import.meta.env.VITE_API_URL + "/api/orders", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+        })
+        .then((response) => {
+          console.log(response.data);
+          setOrders(response.data);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch orders:", error);
+          setIsLoading(false);
         });
-        setOrders(res.data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.response?.data?.message || "Error fetching orders");
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, [token]);
-
-  const updateStatus = async (orderID, status) => {
-    try {
-      await axios.put(
-        `http://localhost:5000/api/orders/status/${orderID}`,
-        { status },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.orderID === orderID ? { ...order, status } : order
-        )
-      );
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to update status");
     }
-  };
-
-  if (loading) return <p>Loading orders...</p>;
-  if (error) return <p>{error}</p>;
+  }, [isLoading, navigate]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Orders</h1>
-      {orders.length === 0 ? (
-        <p>No orders found</p>
-      ) : (
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border p-2">Order ID</th>
-              <th className="border p-2">Customer</th>
-              <th className="border p-2">Items</th>
-              <th className="border p-2">Total</th>
-              <th className="border p-2">Status</th>
-              <th className="border p-2">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.orderID}>
-                <td className="border p-2">{order.orderID}</td>
-                <td className="border p-2">{order.customerName || order.email}</td>
-                <td className="border p-2">
-                  {order.items.map((item, idx) => (
-                    <div key={idx}>
-                      {item.name} x {item.quantity}
-                    </div>
+    <div className="w-full min-h-full bg-white">
+      {/* Page container */}
+      <Header />
+      <TtitleBar/>
+      <div className="mx-auto max-w-7xl p-6">
+        {/* Card */}
+        <div className="rounded-2xl border border-secondary/10 bg-primary shadow-sm">
+          {/* Header bar */}
+          <div className="flex items-center justify-between gap-4 border-b border-secondary/10 px-6 py-4">
+            <h1 className="text-lg font-semibold text-secondary">Orders</h1>
+            <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+              {orders.length} orders
+            </span>
+          </div>
+
+          {/* Table wrapper for responsive scrolling */}
+          <div className="overflow-x-auto">
+            {isLoading ? (
+              <Loader />
+            ) : (
+              <table className="w-full min-w-[880px] text-left">
+                <thead className="bg-secondary text-white">
+                  <tr>
+                    <th className="sticky top-0 z-10 px-4 py-3 text-xs font-semibold uppercase tracking-wide">
+                      Order ID
+                    </th>
+                    <th className="sticky top-0 z-10 px-4 py-3 text-xs font-semibold uppercase tracking-wide">
+                      Number of Items
+                    </th>
+                    <th className="sticky top-0 z-10 px-4 py-3 text-xs font-semibold uppercase tracking-wide">
+                      Customer Name
+                    </th>
+                    <th className="sticky top-0 z-10 px-4 py-3 text-xs font-semibold uppercase tracking-wide">
+                      Email
+                    </th>
+                    <th className="sticky top-0 z-10 px-4 py-3 text-xs font-semibold uppercase tracking-wide">
+                      Phone
+                    </th>
+                    <th className="sticky top-0 z-10 px-4 py-3 text-xs font-semibold uppercase tracking-wide">
+                      Address
+                    </th>
+                    <th className="sticky top-0 z-10 px-4 py-3 text-xs font-semibold uppercase tracking-wide">
+                      Total
+                    </th>
+                    <th className="sticky top-0 z-10 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-center">
+                      Status
+                    </th>
+                    <th className="sticky top-0 z-10 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-center">
+                      Date
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-secondary/10">
+                  {orders.map((item) => (
+                    <tr
+                      key={item.orderID}
+                      className="odd:bg-white even:bg-primary hover:bg-accent/5 transition-colors"
+                    >
+                      <td className="px-4 py-3 font-mono text-sm text-secondary/80">
+                        {item.orderID}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-secondary">
+                        {item.items?.length || 0} items
+                      </td>
+                      <td className="px-4 py-3 font-medium text-secondary">
+                        {item.customerName}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-secondary">
+                        {item.email}
+                      </td>
+                      <td className="px-4 py-3 text-secondary/70">
+                        {item.phone}
+                      </td>
+                      <td className="px-4 py-3">
+                        {item.address}
+                      </td>
+                      <td className="px-4 py-3">
+                        {new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(item?.total || 0)}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {item.status}
+                      </td>
+                      <td className="px-4 py-3">
+                        {item.date
+                          ? new Date(item.date).toLocaleDateString()
+                          : "—"}
+                      </td>
+                    </tr>
                   ))}
-                </td>
-                <td className="border p-2">{order.total}</td>
-                <td className="border p-2">{order.status}</td>
-                <td className="border p-2">
-                  {["Pending", "Shipped", "Delivered", "Cancelled"].map(
-                    (status) => (
-                      <button
-                        key={status}
-                        onClick={() => updateStatus(order.orderID, status)}
-                        className="mr-2 px-2 py-1 bg-blue-500 text-white rounded"
+
+                  {orders.length === 0 && (
+                    <tr>
+                      <td
+                        className="px-4 py-12 text-center text-secondary/60"
+                        colSpan={9}
                       >
-                        {status}
-                      </button>
-                    )
+                        No orders to display.
+                      </td>
+                    </tr>
                   )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

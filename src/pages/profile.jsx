@@ -53,6 +53,7 @@ export default function ProfilePage() {
 
       <div className="mt-6 flex gap-3">
         <button onClick={() => navigate("/settings")} className="px-4 py-2 bg-accent text-white rounded">Edit Profile</button>
+        <button onClick={() => navigate("/OrdersPage")} className="px-4 py-2 bg-accent text-white rounded">Orders</button>
         <button onClick={() => { localStorage.removeItem("token"); window.location.reload(); }} className="px-4 py-2 border rounded">Logout</button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Header, { TtitleBar } from "../components/header";
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
@@ -12,11 +13,14 @@ export default function Contact() {
     setFormData({ name: "", email: "", message: "" });
   };
 
-  return (
+  return (<div className="w-full h-full">
+    <Header/>
+    <TtitleBar/>
     <div className="min-h-screen bg-gradient-to-b from-primary to-primary text-black flex flex-col items-center justify-center px-6 py-16">
+      
       <div className="max-w-3xl w-full text-center">
         
-        <h1 className="text-4xl md:text-5xl font-bold mb-6 text-orange-500">
+        <h1 className="text-4xl md:text-5xl font-bold mb-6 text-accent">
           Contact Us
         </h1>
         <p className="text-black mb-10">
@@ -35,7 +39,7 @@ export default function Contact() {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 focus:border-orange-500 outline-none text-white"
+              className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 focus:border-accent outline-none text-white"
             />
             <input
               type="email"
@@ -44,7 +48,7 @@ export default function Contact() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 focus:border-orange-500 outline-none text-white"
+              className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 focus:border-accent outline-none text-white"
             />
           </div>
 
@@ -54,23 +58,24 @@ export default function Contact() {
             value={formData.message}
             onChange={handleChange}
             required
-            className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 focus:border-orange-500 outline-none text-white mb-6 h-32"
+            className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 focus:border-accent outline-none text-white mb-6 h-32"
           ></textarea>
 
           <button
             type="submit"
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition"
+            className="w-full bg-accent hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition"
           >
             Send Message
           </button>
         </form>
 
         <div className="mt-10 text-gray-400">
-          <p>Email: <span className="text-black">alipres@gmail.com</span></p>
+          <p>Email: <span className="text-black">hubify.web.sell@gmail.com</span></p>
           <p>Phone: <span className="text-black">+94 71 102 2594</span></p>
-          <p>Location: <span className="text-black">Colombo, Sri Lanka</span></p>
+          <p> <span className="text-black"></span></p>
         </div>
       </div>
+    </div>
     </div>
   );
 }
