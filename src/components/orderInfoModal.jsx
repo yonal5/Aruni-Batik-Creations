@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 
-const formatLKR = (n) =>
+const formatUSD = (n) =>
 	new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
 		n ?? 0
 	);
@@ -16,7 +16,7 @@ const statusBadgeClass = (status) => {
 			return `${base} bg-green-500/10 text-green-600`;
 		case "shipped":
 		case "processing":
-			return `${base} bg-blue-500/10 text-blue-600`;
+			return `${base} bg-accent-500/10 text-accent-600`;
 		case "cancelled":
 		case "canceled":
 			return `${base} bg-red-500/10 text-red-600`;
@@ -234,5 +234,4 @@ export default function OrderModal({
 			</div>
 		</div>
 	);
-
 }
