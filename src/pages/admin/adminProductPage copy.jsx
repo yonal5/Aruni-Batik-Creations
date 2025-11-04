@@ -36,7 +36,7 @@ function ProductDeleteConfirm(props){
 				</button>
 				<p className="text-xl font-semibold">Are you sure you want to delete the product with product ID : {productID}?</p>
 				<div className="flex gap-[40px]">
-					<button onClick={close} className="w-[100px] bg-blue-600 p-[5px] text-white hover:bg-accent">
+					<button onClick={close} className="w-[100px] bg-accent-600 p-[5px] text-white hover:bg-accent">
 						Cancel
 					</button>
 					<button onClick={deleteProduct} className="w-[100px] bg-red-600 p-[5px] text-white hover:bg-accent">
@@ -145,12 +145,12 @@ export default function AdminProductPage() {
 											</td>
 											<td className="px-4 py-3 text-secondary/90">
 												<span className="rounded-md bg-secondary/5 px-2 py-1 text-sm">
-													LKR {item.price}
+													USD {item.price}
 												</span>
 											</td>
 											<td className="px-4 py-3 text-secondary/70">
 												<span className="text-sm line-through">
-													LKR {item.labelledPrice}
+													USD {item.labelledPrice}
 												</span>
 											</td>
 											<td className="px-4 py-3 text-secondary/70">
