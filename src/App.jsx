@@ -12,6 +12,7 @@ import ForgetPassword from "./pages/forget-password";
 import UserSettings from "./pages/settings";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import OrdersPage from "./pages/OrdersPage";
 
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
 						<Route path="/settings" element={<UserSettings/>} />
 						<Route path="/about" element={<About/>} />
 			            <Route path="/contact" element={<Contact/>} />
+						<Route path="/orders" element={<OrdersPage />} />
 					</Routes>
 				</div>
 			</GoogleOAuthProvider>
