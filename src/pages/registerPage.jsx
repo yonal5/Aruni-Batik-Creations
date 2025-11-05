@@ -61,11 +61,11 @@ export default function RegisterPage() {
 							<div className="mb-8 flex flex-col items-center text-center">
 								<img
 									src="/logo.png"
-									alt="Alipres Logo"
+									alt="SnapSite Logo"
 									className="h-12 w-auto mb-4"
 								/>
 								<h2 className="text-2xl font-semibold text-white">
-									Welcome back to Alipres
+									Welcome back to Snapsite
 								</h2>
 								<p className="text-primary/90 text-sm">
 									Log in to continue your beauty journey and checkout faster.
@@ -187,7 +187,7 @@ export default function RegisterPage() {
 
 						{/* Small footer for mobile */}
 						<p className="mt-6 text-center text-primary/80 text-xs lg:hidden">
-							© {new Date().getFullYear()} Alipres – Best Computer & Gaming Store
+							© {new Date().getFullYear()} Snapsite – Best Computer & Gaming Store
 						</p>
 					</div>
 				</div>
@@ -196,11 +196,11 @@ export default function RegisterPage() {
 					<div className="flex items-center gap-4">
 						<img
 							src="/logo.png"
-							alt="Alipres - Best Computer & Gaming Store"
+							alt="SnapSite - Best Computer & Gaming Store"
 							className="h-10 w-auto"
 						/>
 						<span className="text-primary/90 tracking-wide font-semibold">
-							Alipres • Best Computer & Gaming Store
+							SnapSite • Best Computer & Gaming Store
 						</span>
 					</div>
 
@@ -218,7 +218,7 @@ export default function RegisterPage() {
 					</div>
 
 					<p className="text-primary/80 text-sm">
-						© {new Date().getFullYear()} Alipres – Best Computer & Gaming Store. All rights
+						© {new Date().getFullYear()} SnapSite – Best Computer & Gaming Store. All rights
 						reserved.
 					</p>
 				</div>
@@ -227,4 +227,5 @@ export default function RegisterPage() {
 			</div>
 		</div>
 	);
+
 }
