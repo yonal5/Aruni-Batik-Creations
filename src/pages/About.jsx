@@ -9,10 +9,10 @@ export default function About() {
       <div className="max-w-4xl text-center">
         
         <h1 className="text-4xl md:text-5xl font-bold mb-6 text-accent">
-          About Alipres
+          About SnapSite
         </h1>
         <p className="text-black text-lg leading-relaxed mb-8">
-          Welcome to <span className="text-accent font-semibold">Alipres</span> — 
+          Welcome to <span className="text-accent font-semibold">SnapSite</span> — 
           your one-stop destination for the latest gaming tech, computer accessories, 
           and cutting-edge electronics. We’re passionate about bringing you the 
           best-quality gear at affordable prices, with a focus on reliability and performance.
@@ -31,3 +31,4 @@ export default function About() {
     </div>
   );
 }
+
