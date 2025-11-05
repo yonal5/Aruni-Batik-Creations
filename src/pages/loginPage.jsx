@@ -177,7 +177,7 @@ export default function LoginPage() {
 							</div>
 
 							<div className="mt-6 text-center text-sm text-primary/90">
-								New to Alipres?{" "}
+								New to Snapsite?{" "}
 								<Link
 									to="/register"
 									className="text-accent hover:underline underline-offset-4"
