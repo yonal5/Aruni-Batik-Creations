@@ -6,7 +6,7 @@ import { HiOutlineUsers } from "react-icons/hi";
 import AdminProductPage from "./admin/adminProductPage";
 import AddProductPage from "./admin/adminAddNewProduct";
 import UpdateProductPage from "./admin/adminUpdateProduct";
-import AdminOrdersPage from "./admin/adminOrdersPage";
+import AdminChat from "./admin/AdminChat";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -65,11 +65,11 @@ export default function AdminPage() {
 					Dashboard
 				</Link>
 				<Link
-					to="/admin/orders"
+					to="/admin/chat"
 					className="w-[90%] flex items-center gap-2 px-4  rounded-lg"
 				>
 					<MdShoppingCartCheckout className="text-xl" />
-					Orders
+					Chat
 				</Link>
 				<Link
 					to="/admin/products"
@@ -91,7 +91,7 @@ export default function AdminPage() {
 					{userLoaded?<Routes path="/">
 						<Route path="/" element={<h1>Dashboard</h1>} />
 						<Route path="/products" element={<AdminProductPage />} />
-						<Route path="/orders" element={<AdminOrdersPage/>} />
+						<Route path="/chat" element={<AdminChat/>} />
 						<Route path="/add-product" element={<AddProductPage />} />
 						<Route path="/update-product" element={<UpdateProductPage/>}/>
 						<Route path="/users" element={<AdminUsersPage/>} />
