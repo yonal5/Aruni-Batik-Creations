@@ -10,7 +10,8 @@ export default function AdminChat() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
-  const BASE_URL = "http://localhost:5000";
+  const BASE_URL = import.meta.env.VITE_API_URL;
+
   const messagesContainerRef = useRef(null);
 
   // Load all customers
@@ -168,3 +169,4 @@ export default function AdminChat() {
     </div>
   );
 }
+
