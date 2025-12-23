@@ -80,7 +80,7 @@ export default function Header() {
             className="absolute left-2 text-3xl"
             onClick={() => setIsSidebarOpen(true)}
           />
-          <img src="/logo.png" className="h-full w-[170px] object-cover" />
+          <img src="/logo.png" className="h-full w-[200px] object-cover" />
           <button
             className="absolute right-2 text-2xl p-1 rounded bg-white/10"
             aria-label="Open search"
