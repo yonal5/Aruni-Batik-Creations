@@ -266,9 +266,9 @@ export function TtitleBar() {
         <span>Products</span>
       </Link>
 
-      <Link to="/contact" className="flex gap-2 items-center">
+      <Link to="/chat" className="flex gap-2 items-center">
         <IoMdContacts className="text-3xl cursor-pointer" />
-        <span>Contact</span>
+        <span>Chat</span>
       </Link>
 
       <Link to="/about" className="flex gap-2 items-center">
