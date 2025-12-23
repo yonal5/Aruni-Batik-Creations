@@ -65,7 +65,7 @@ export default function LoginPage() {
 						<img
 							src="/logo.png"
 							alt="SnapSite"
-							className="w-[100]"
+							className="h-16 w-auto"
 						/>
 						<span className="text-primary/90 tracking-wide font-semibold">
 							Alipres
@@ -99,8 +99,8 @@ export default function LoginPage() {
 							<div className="mb-8 flex flex-col items-center text-center">
 								<img
 									src="/logo.png"
-									alt="Alipres Logo"
-									className="h-12 w-auto mb-4"
+									alt="SnapSite Logo"
+									className="w-[150px] h-[100px] mb-4"
 								/>
 								<h2 className="text-2xl font-semibold text-white">
 									Welcome back to Snapsite
