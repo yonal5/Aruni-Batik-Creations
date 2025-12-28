@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 
@@ -13,8 +13,6 @@ export default function ChatPage({ user }) {
   const [message, setMessage] = useState("");
   const [cart] = useState(cartFromState);
   const [sending, setSending] = useState(false);
-
-  const messagesEndRef = useRef(null);
 
   /* =========================
      STABLE GUEST ID (ONCE)
@@ -56,36 +54,32 @@ export default function ChatPage({ user }) {
   ========================= */
   const loadMessages = async () => {
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/chat`,
-        {
-          params: { guestId },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-          },
-        }
-      );
-      setMessages(res.data);
+      const res = await axios.get(`${BASE_URL}/api/chat`, {
+        params: { guestId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+      });
+
+      const data = Array.isArray(res.data)
+        ? res.data
+        : res.data.messages || [];
+
+      setMessages(data);
     } catch (err) {
       console.error("Load messages failed:", err);
+      setMessages([]);
     }
   };
 
   /* =========================
-     POLLING (MOBILE SAFE)
+     POLLING
   ========================= */
   useEffect(() => {
     loadMessages();
     const interval = setInterval(loadMessages, 2500);
     return () => clearInterval(interval);
   }, []);
-
-  /* =========================
-     AUTO SCROLL
-  ========================= */
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   /* =========================
      SEND MESSAGE
@@ -96,22 +90,14 @@ export default function ChatPage({ user }) {
     setSending(true);
 
     try {
-      await axios.post(
-        `${BASE_URL}/api/chat`,
-        {
-          customerName,
-          guestId,
-          message: message.trim(),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-          },
-        }
-      );
+      await axios.post(`${BASE_URL}/api/chat`, {
+        customerName,
+        guestId,
+        message: message.trim(),
+      });
 
       setMessage("");
-      await loadMessages();
+      loadMessages();
     } catch (err) {
       console.error("Send message failed:", err);
       alert("Message failed to send. Please try again.");
@@ -136,7 +122,9 @@ export default function ChatPage({ user }) {
           <h2 className="font-semibold mb-2">Your Cart</h2>
           {cart.map((item, idx) => (
             <div key={idx} className="flex justify-between text-sm">
-              <span>{item.name} × {item.quantity}</span>
+              <span>
+                {item.name} × {item.quantity}
+              </span>
               <span>${item.price.toFixed(2)}</span>
             </div>
           ))}
@@ -153,12 +141,11 @@ export default function ChatPage({ user }) {
             }`}
           >
             <div className="inline-block px-3 py-2 rounded bg-gray-200">
-              <b>{msg.sender === "admin" ? "Admin" : msg.customerName}:</b>{" "}
+              <b>{msg.sender === "admin" ? "Admin" : `User-${userNumber}`}:</b>
               {msg.message}
             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* INPUT */}

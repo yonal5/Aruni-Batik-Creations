@@ -48,7 +48,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
     await axios.post(`${BASE_URL}/api/chat`, {
       guestId,
       customerName,
-      message: `🛒 Checkout Cart Items:\n${cartMessage}`,
+      message: `🛒User-${userNumber} Checkout Cart Items:\n${cartMessage}`,
     });
 
     navigate("/chat");
@@ -136,4 +136,3 @@ const BASE_URL = import.meta.env.VITE_API_URL;
     </div>
   );
 }
-

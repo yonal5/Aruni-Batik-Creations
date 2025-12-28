@@ -27,7 +27,7 @@ export default function HomePage() {
 
   return (
     <div className="w-auto h-auto bg-white">
-      <MainHeader/>
+      <Header/>
 
       {/* Show TitleBar + ArivleBar only on homepage ("/" or "/products") */}
       {(location.pathname === "/") && (
@@ -62,4 +62,3 @@ export default function HomePage() {
     </div>
   );
 }
-
