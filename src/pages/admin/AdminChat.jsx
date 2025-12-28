@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function AdminChat() {
@@ -9,10 +9,7 @@ export default function AdminChat() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
-  // ⚠️ IMPORTANT: Use ENV in production
   const BASE_URL = import.meta.env.VITE_API_URL;
-
-  const messagesContainerRef = useRef(null);
 
   // ---------------- LOAD CUSTOMERS ----------------
   const loadCustomers = async () => {
@@ -20,7 +17,6 @@ export default function AdminChat() {
       const res = await axios.get(`${BASE_URL}/api/chat/customers`);
 
       setCustomers((prev) => {
-        // keep previous selection
         if (!selectedGuestId && res.data.length > 0) {
           setSelectedGuestId(res.data[0].userId);
         }
@@ -46,22 +42,14 @@ export default function AdminChat() {
     }
   };
 
-  // ---------------- AUTO SCROLL ----------------
-  useEffect(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop =
-        messagesContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  // ---------------- POLLING (AUTO REFRESH) ----------------
+  // ---------------- POLLING ----------------
   useEffect(() => {
     loadCustomers();
     loadMessages();
 
     const interval = setInterval(() => {
-      loadCustomers();   // 👈 refresh customer list
-      loadMessages();    // 👈 refresh messages
+      loadCustomers();
+      loadMessages();
     }, 2000);
 
     return () => clearInterval(interval);
@@ -90,7 +78,7 @@ export default function AdminChat() {
   return (
     <div className="flex gap-6 p-6">
       {/* CUSTOMER LIST */}
-      <div className="w-64 bg-white p-4 rounded border">
+      <div className="w-64 h-[880px] bg-white p-4 rounded border">
         <h2 className="font-bold">Customers</h2>
         <input
           className="w-full border px-2 py-1 rounded mt-2"
@@ -115,14 +103,17 @@ export default function AdminChat() {
       </div>
 
       {/* CHAT AREA */}
-      <div className="flex-1 flex flex-col">
-        <div
-          ref={messagesContainerRef}
-          className="bg-white border rounded p-4 flex-1 overflow-y-auto"
-        >
+      <div className="flex-1 w-full h-[880px] flex flex-col">
+        <div className="bg-white border rounded p-4 flex-1 overflow-y-auto">
           {messages.map((msg) => (
             <div key={msg._id} className="mb-2">
-              <b className={msg.sender === "admin" ? "text-red-600" : "text-blue-600"}>
+              <b
+                className={
+                  msg.sender === "admin"
+                    ? "text-red-600"
+                    : "text-blue-600"
+                }
+              >
                 {msg.sender === "admin" ? "Admin" : "Customer"}:
               </b>
               <p>{msg.message}</p>

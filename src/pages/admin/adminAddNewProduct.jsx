@@ -16,6 +16,7 @@ export default function AddProductPage() {
 	const [stock, setStock] = useState(0);
 	const navigate = useNavigate();
 
+	console.log(category);
 	async function addProduct() {
 
 		const token = localStorage.getItem("token");

@@ -14,14 +14,11 @@ function UserBlockConfirm(props) {
 	const refresh = props.refresh;
 	function blockUser() {
 		const token = localStorage.getItem("token");
-		axios
-			.put(import.meta.env.VITE_API_URL + "/users/block/" + email,{
-                isBlock: !props.user.isBlock
-            },{
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			}).then((response) => {
+		axios.put(`${import.meta.env.VITE_API_URL}/api/users/block/${email}`, 
+  { isBlock: !user.isBlock }, 
+  { headers: { Authorization: `Bearer ${token}` } }
+)
+.then((response) => {
 				console.log(response.data);
 				close();
 				toast.success("User block status changed successfully");
@@ -78,8 +75,11 @@ export default function AdminUsersPage() {
 				navigate("/login");
 				return;
 			}
-			axios
-				.get(import.meta.env.VITE_API_URL + "/users/all-users", {
+			axios.get(`${import.meta.env.VITE_API_URL}/api/users/all-users`, {
+  headers: { Authorization: `Bearer ${token}` },
+});
+axios
+				.get(import.meta.env.VITE_API_URL + "/api/users/all-users", {
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
