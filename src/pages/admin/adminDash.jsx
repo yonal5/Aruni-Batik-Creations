@@ -10,7 +10,8 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { MdDashboard, MdPeople, MdChat } from "react-icons/md";
+
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState([]);
@@ -18,14 +19,19 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/admin/stats");
-      setCards(res.data);
+      const res = await axios.get(`${BASE_URL}/api/admin/stats`);
+
+      setCards({
+        users: res.data.users || 0,
+        chats: res.data.chats || 0,
+      });
+
       setStats([
-        { name: "Users", value: res.data.users },
-        { name: "Chats", value: res.data.chats },
+        { name: "Users", value: res.data.users || 0 },
+        { name: "Chats", value: res.data.chats || 0 },
       ]);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch admin stats:", err);
     }
   };
 
@@ -37,9 +43,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen bg-gray-100 font-sans">
-  
-
-      {/* Main Content */}
       <main className="flex-1 p-8">
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -47,6 +50,7 @@ export default function AdminDashboard() {
             <h3 className="text-accent text-lg font-semibold">Users</h3>
             <h1 className="text-3xl font-bold mt-2">{cards.users}</h1>
           </div>
+
           <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-accent">
             <h3 className="text-accent text-lg font-semibold">Chats</h3>
             <h1 className="text-3xl font-bold mt-2">{cards.chats}</h1>
@@ -62,7 +66,7 @@ export default function AdminDashboard() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" fill="#4f46e5" />
+                <Bar dataKey="value" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -74,7 +78,7 @@ export default function AdminDashboard() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={3} />
+                <Line type="monotone" dataKey="value" strokeWidth={3} />
               </LineChart>
             </ResponsiveContainer>
           </div>
