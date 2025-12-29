@@ -72,7 +72,7 @@ export default function Header() {
       <div className="w-full h-full flex relative ">
         <img
           src="/logo.png"
-          className="hidden lg:flex h-full absolute w-[250px] left-0  object-cover"
+          className="hidden lg:flex h-full absolute w-[200px] left-0  object-cover"
         />
         {/* mobile header: menu, logo and search toggle */}
         <div className="lg:hidden w-full relative flex justify-center items-center">
@@ -80,7 +80,7 @@ export default function Header() {
             className="absolute left-2 text-3xl"
             onClick={() => setIsSidebarOpen(true)}
           />
-          <img src="/logo.png" className="h-full w-[200px] object-cover" />
+          <img src="/logo.png" className="h-full w-[170px] object-cover" />
           <button
             className="absolute right-2 text-2xl p-1 rounded bg-white/10"
             aria-label="Open search"
@@ -174,8 +174,8 @@ export default function Header() {
               <a href="/about" className="p-4 border-b border-secondary/10">
                 About
               </a>
-              <a href="/contact" className="p-4 border-b border-secondary/10">
-                Contact
+              <a href="/chat" className="p-4 border-b border-secondary/10">
+                Chat
               </a>
               <a href="/cart" className="p-4 border-b border-secondary/10">
                 Cart
@@ -216,17 +216,15 @@ export default function Header() {
               aria-label="Category filter"
             >
               <option value="">All categories</option>
-              <option value="Keyboard">Keyboard</option>
-              <option value="Mouse">Mouse</option>
-              <option value="Motherboard">Motherboard</option>
-              <option value="Grapics card">Grapics Card</option>
-              <option value="Gaming case">Gaming Case</option>
-              <option value="Pc pribild">PC Pre Bilde</option>
-              <option value="Cooler">Cooler</option>
-              <option value="Power Supply">Power Supply</option>
-              <option value="CPU">CPU</option>
-              <option value="Ram">Ram</option>
-              <option value="Storage">Storage</option>
+              <option value="Website blue">Website Blue</option>
+								<option value="Website green">Website Green</option>
+								<option value="Website red">Website Red</option>
+								<option value="Website yellow">Website Yellow</option>
+								<option value="Website perple">Website Perple</option>
+								<option value="Website orenge">Website Orenge</option>
+								<option value="Website black">Website Black</option>
+								<option value="Website blue">Website Blue</option>
+                
             </select>
             <button
               type="submit"
