@@ -16,22 +16,37 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 export default function AdminDashboard() {
   const [stats, setStats] = useState([]);
   const [cards, setCards] = useState({ users: 0, chats: 0 });
+  const [error, setError] = useState("");
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/admin/stats`);
+      const token = localStorage.getItem("token");
 
-      setCards({
-        users: res.data.users || 0,
-        chats: res.data.chats || 0,
+      if (!token) {
+        setError("Unauthorized. Please login again.");
+        return;
+      }
+
+      const res = await axios.get(`${BASE_URL}/api/admin/stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
+      const users = res.data?.users ?? 0;
+      const chats = res.data?.chats ?? 0;
+
+      setCards({ users, chats });
+
       setStats([
-        { name: "Users", value: res.data.users || 0 },
-        { name: "Chats", value: res.data.chats || 0 },
+        { name: "Users", value: users },
+        { name: "Chats", value: chats },
       ]);
+
+      setError("");
     } catch (err) {
-      console.error("Failed to fetch admin stats:", err);
+      console.error("Admin stats error:", err);
+      setError("Failed to load admin statistics.");
     }
   };
 
@@ -44,6 +59,14 @@ export default function AdminDashboard() {
   return (
     <div className="flex min-h-screen bg-gray-100 font-sans">
       <main className="flex-1 p-8">
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-accent">
@@ -83,6 +106,7 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </div>
         </div>
+
       </main>
     </div>
   );
