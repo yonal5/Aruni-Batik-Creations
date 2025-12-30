@@ -8,7 +8,7 @@ export default function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
     const navigate = useNavigate()
- 
+
 	const googleLogin = useGoogleLogin({
 		onSuccess: (response) => {
 			axios.post(import.meta.env.VITE_API_URL + "/api/users/google-login", {
@@ -59,9 +59,9 @@ export default function LoginPage() {
 				{/* Left side */}
 				<div className="hidden lg:flex flex-col justify-between p-10">
 					<div className="flex items-center gap-4">
-						<img src="/logo.png" alt="SnapSite" className="h-16 w-auto" />
+						<img src="/logo.png" alt="Aruni Batik Creations" className="h-16 w-auto" />
 						<span className="text-primary/90 tracking-wide font-semibold">
-							SnapSite
+							Aruni Batik Creations
 						</span>
 					</div>
 
@@ -80,7 +80,7 @@ export default function LoginPage() {
 					</div>
 
 					<p className="text-primary/80 text-sm">
-						© {new Date().getFullYear()} SnapSite – Professional Website Solutions. All rights reserved.
+						© {new Date().getFullYear()} Aruni Batik Creations– Batik made with Love.
 					</p>
 				</div>
 
@@ -89,9 +89,9 @@ export default function LoginPage() {
 					<div className="w-full max-w-md">
 						<div className="rounded-3xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl p-8 sm:p-10">
 							<div className="mb-8 flex flex-col items-center text-center">
-								<img src="/logo.png" alt="SnapSite Logo" className="w-[150px] h-[100px] mb-4" />
+								<img src="/logo.png" alt="Aruni Batik CreationsLogo" className="w-[150px] h-[100px] mb-4" />
 								<h2 className="text-2xl font-semibold text-white">
-									Welcome back to SnapSite
+									Welcome back to Aruni Batik Creations
 								</h2>
 								<p className="text-primary/90 text-sm">
 									Log in to access your account and manage your website services.
@@ -143,7 +143,7 @@ export default function LoginPage() {
 							</div>
 
 							<div className="mt-6 text-center text-sm text-primary/90">
-								New to SnapSite?{" "}
+								New to Aruni Batik Creations?{" "}
 								<Link to="/register" className="text-accent hover:underline">
 									Create an account
 								</Link>
@@ -151,7 +151,7 @@ export default function LoginPage() {
 						</div>
 
 						<p className="mt-6 text-center text-primary/80 text-xs lg:hidden">
-							© {new Date().getFullYear()} SnapSite – Professional Website Solutions
+							© {new Date().getFullYear()} Aruni Batik Creations– Professional Website Solutions
 						</p>
 					</div>
 				</div>
