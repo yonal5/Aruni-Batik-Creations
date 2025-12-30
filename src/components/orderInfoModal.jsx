@@ -2,8 +2,8 @@ import axios from "axios";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 
-const formatUSD = (n) =>
-	new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+const formatLKR = (n) =>
+	new Intl.NumberFormat("en-US", { style: "currency", currency: "LKR" }).format(
 		n ?? 0
 	);
 
@@ -127,7 +127,7 @@ export default function OrderModal({
 								<div className="flex justify-between">
 									<dt className="text-secondary/60">Total</dt>
 									<dd className="font-semibold text-secondary">
-										{formatUSD(selectedOrder.total)}
+										{formatLKR(selectedOrder.total)}
 									</dd>
 								</div>
 							</dl>
@@ -158,14 +158,14 @@ export default function OrderModal({
 													{it.name}
 												</p>
 												<p className="text-sm text-secondary/70">
-													{formatUSD(it.price)}
+													{formatLKR(it.price)}
 												</p>
 											</div>
 											<div className="mt-1 flex items-center justify-between text-xs text-secondary/60">
 												<span className="font-mono">PID: {it.productID}</span>
 												<span>Qty: {it.quantity}</span>
 												<span className="font-semibold text-secondary">
-													{formatUSD(lineTotal)}
+													{formatLKR(lineTotal)}
 												</span>
 											</div>
 										</div>
@@ -185,7 +185,7 @@ export default function OrderModal({
 				<div className="flex items-center justify-between gap-3 border-t border-secondary/10 px-6 py-4">
 					<span className="text-sm text-secondary/60">
 						{selectedOrder.items?.length ?? 0} items •{" "}
-						{formatUSD(selectedOrder.total)}
+						{formatLKR(selectedOrder.total)}
 					</span>
 					<select
 						defaultValue={selectedOrder.status}
