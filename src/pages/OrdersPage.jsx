@@ -116,7 +116,7 @@ export default function AdminOrdersPage() {
                       <td className="px-4 py-3">
                         {new Intl.NumberFormat("en-US", {
                           style: "currency",
-                          currency: "USD",
+                          currency: "LKR",
                         }).format(item?.total || 0)}
                       </td>
                       <td className="px-4 py-3 text-center">
