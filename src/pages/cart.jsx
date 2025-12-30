@@ -40,7 +40,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 
   const cartMessage = cart
     .map(
-      (item) => `${item.name} x ${item.quantity} - USD ${item.price.toFixed(2)}`
+      (item) => `${item.name} x ${item.quantity} - LKR ${item.price.toFixed(2)}`
     )
     .join("\n");
 
@@ -48,7 +48,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
     await axios.post(`${BASE_URL}/api/chat`, {
       guestId,
       customerName,
-      message: `🛒User-${userNumber} Checkout Cart Items:\n${cartMessage}`,
+      message: `🛒 Checkout Cart Items:\n${cartMessage}`,
     });
 
     navigate("/chat");
@@ -106,11 +106,11 @@ const BASE_URL = import.meta.env.VITE_API_URL;
                 <div className="w-full lg:w-[180px] lg:h-full flex flex-row lg:flex-col items-center justify-center">
                   {item.labelledPrice > item.price && (
                     <span className="text-secondary text-lg line-through lg:w-full text-center lg:text-right pr-[10px] lg:mt-[20px]">
-                      USD {item.labelledPrice.toFixed(2)}
+                      LKR {item.labelledPrice.toFixed(2)}
                     </span>
                   )}
                   <span className="font-semibold text-accent text-2xl lg:w-full text-center lg:text-right pr-[10px] lg:mt-[5px]">
-                    USD {item.price.toFixed(2)}
+                    LKR {item.price.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -126,7 +126,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 
               <div className="h-[50px] flex items-center">
                 <span className="font-semibold text-accent text-2xl lg:text-right lg:pr-[10px]">
-                  Total: USD {getTotal().toFixed(2)}
+                  Total: LKR {getTotal().toFixed(2)}
                 </span>
               </div>
             </div>
