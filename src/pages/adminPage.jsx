@@ -12,7 +12,6 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { Loader } from "../components/loader";
 import AdminUsersPage from "./admin/usersPage";
-import AdminDash from "./admin/adminDash";
 
 export default function AdminPage() {
 
@@ -21,30 +20,31 @@ export default function AdminPage() {
 	const [userLoaded, setUserLoaded] = useState(false);
 
 	useEffect(
-		() => {
+		()=>{
 			const token = localStorage.getItem("token");
-			if (token == null) {
+			console.log(token);
+			if(token == null){
 				toast.error("Please login to access admin panel");
 				navigate("/login");
 				return;
 			}
-			axios.get(import.meta.env.VITE_API_URL + "/api/users/me", {
+			axios.get(import.meta.env.VITE_API_URL + "/api/users/me",{
 				headers: {
 					Authorization: `Bearer ${token}`,
 				},
-			}).then((res) => {
-				if (res.data.role !== "admin") {
+			}).then((res)=>{
+				if(res.data.role !== "admin"){
 					toast.error("You are not authorized to access admin panel");
 					navigate("/");
 					return;
 				}
 				setUserLoaded(true);
-			}).catch(() => {
+			}).catch(()=>{
 				toast.error("Session expired. Please login again");
 				localStorage.removeItem("token");
 				window.location.href = "/login";
 			});
-		}, []
+		},[]
 	)
 
 	return (
@@ -53,7 +53,7 @@ export default function AdminPage() {
 				<div className="flex flex-row w-[90%] h-[70px] bg-accent items-center rounded-2xl mb-[20px]">
 					<img
 						src="/logo.png"
-						alt="SnapSite - Best Computer & Gaming Store"
+						alt="Aruni Batik Creations- Batik made with Love"
 						className="h-[70px]"
 					/>
 					<span className="text-white text-xl  ml-4">Admin panel</span>
@@ -89,14 +89,14 @@ export default function AdminPage() {
 			</div>
 			<div className="w-[calc(100%-300px)] h-full border-[4px] border-accent rounded-[20px] overflow-hidden">
 				<div className=" h-full w-full max-w-full max-h-full overflow-y-scroll">
-					{userLoaded ? <Routes path="/">
-						<Route path="/" element={<AdminDash />} />
+					{userLoaded?<Routes path="/">
+						<Route path="/" element={<h1>Dashboard</h1>} />
 						<Route path="/products" element={<AdminProductPage />} />
-						<Route path="/chat" element={<AdminChat />} />
+						<Route path="/chat" element={<AdminChat/>} />
 						<Route path="/add-product" element={<AddProductPage />} />
-						<Route path="/update-product" element={<UpdateProductPage />} />
-						<Route path="/users" element={<AdminUsersPage />} />
-					</Routes> : <Loader />}
+						<Route path="/update-product" element={<UpdateProductPage/>}/>
+						<Route path="/users" element={<AdminUsersPage/>} />
+					</Routes>:<Loader/>}
 				</div>
 			</div>
 		</div>
