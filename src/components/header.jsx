@@ -174,8 +174,8 @@ export default function Header() {
               <a href="/about" className="p-4 border-b border-secondary/10">
                 About
               </a>
-              <a href="/chat" className="p-4 border-b border-secondary/10">
-                Chat
+              <a href="/contact" className="p-4 border-b border-secondary/10">
+                Contact
               </a>
               <a href="/cart" className="p-4 border-b border-secondary/10">
                 Cart
@@ -216,15 +216,17 @@ export default function Header() {
               aria-label="Category filter"
             >
               <option value="">All categories</option>
-              <option value="Website blue">Website Blue</option>
-								<option value="Website green">Website Green</option>
-								<option value="Website red">Website Red</option>
-								<option value="Website yellow">Website Yellow</option>
-								<option value="Website perple">Website Perple</option>
-								<option value="Website orenge">Website Orenge</option>
-								<option value="Website black">Website Black</option>
-								<option value="Website blue">Website Blue</option>
-                
+              <option value="Keyboard">Keyboard</option>
+              <option value="Mouse">Mouse</option>
+              <option value="Motherboard">Motherboard</option>
+              <option value="Grapics card">Grapics Card</option>
+              <option value="Gaming case">Gaming Case</option>
+              <option value="Pc pribild">PC Pre Bilde</option>
+              <option value="Cooler">Cooler</option>
+              <option value="Power Supply">Power Supply</option>
+              <option value="CPU">CPU</option>
+              <option value="Ram">Ram</option>
+              <option value="Storage">Storage</option>
             </select>
             <button
               type="submit"
@@ -288,23 +290,23 @@ export function TtitleBar() {
 
 export function ProductNews() {
   const desktopSlides = [
- //     { type: "video", src: "/gaming 66.mp4", className: "object-contain"},
- //     { type: "image", src: "/12 (1).png", className: "object-cover" },
- //     { type: "image", src: "/12 (1).jpg", className: "object-cover" },
- //     { type: "image", src: "/12 (2).jpg", className: "object-cover" },
- //     { type: "image", src: "/12 (3).jpg", className: "object-cover" },
- //     { type: "image", src: "/12 (5).jpg", className: "object-cover" },
- //     { type: "image", src: "/12 (6).jpg", className: "object-cover" },
- //     { type: "image", src: "/12 (7).jpg", className: "object-cover" },
- //     { type: "image", src: "/12 (8).jpg", className: "object-cover" },
- //     { type: "image", src: "/12 (9).jpg", className: "object-cover" }, 
- //     { type: "image", src: "/12 (10).jpg", className: "object-cover" },
- //     { type: "image", src: "/12 (12).jpg", className: "object-cover" },
-      { type: "image", src: "/websell.png", className: "" },
+    { type: "video", src: "/gaming 66.mp4", className: "object-contain"},
+    { type: "image", src: "/12 (1).png", className: "object-cover" },
+    { type: "image", src: "/12 (1).jpg", className: "object-cover" },
+    { type: "image", src: "/12 (2).jpg", className: "object-cover" },
+    { type: "image", src: "/12 (3).jpg", className: "object-cover" },
+    { type: "image", src: "/12 (5).jpg", className: "object-cover" },
+    { type: "image", src: "/12 (6).jpg", className: "object-cover" },
+    { type: "image", src: "/12 (7).jpg", className: "object-cover" },
+    { type: "image", src: "/12 (8).jpg", className: "object-cover" },
+    { type: "image", src: "/12 (9).jpg", className: "object-cover" },
+    { type: "image", src: "/12 (10).jpg", className: "object-cover" },
+    { type: "image", src: "/12 (12).jpg", className: "object-cover" },
+    { type: "image", src: "/12 (666).jpg", className: "object-cover" },
   ];
 
   const mobileSlides = [
- { type: "image", src: "/websell.png", className: "" },
+    { type: "video", src: "/gaming 66.mp4", className: "object-cover" },
    
   ];
 
@@ -369,7 +371,7 @@ export function ProductNews() {
     <div
       className="
         relative w-full 
-        md:h-[50vh] lg:h-[60vh] 
+        h-[20vh] sm:h-[40vh] md:h-[50vh] lg:h-[60vh] 
         overflow-hidden bg-black shadow-lg
       "
       onMouseEnter={stopSlider}
