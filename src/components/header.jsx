@@ -388,7 +388,7 @@ export function ProductNews() {
               <img
                 src={slide.src}
                 alt={`Slide ${i}`}
-                className="w-[1750px] h-[520px] object-cover"
+                className="w-full h-full object-cover"
               />
             ) : (
               <div onClick={() => togglePlay(i)} className="relative w-full h-full flex justify-center items-center group">
