@@ -85,26 +85,28 @@ export default function ChatPage({ user }) {
      SEND MESSAGE
   ========================= */
   const sendMessage = async () => {
-    if (!message.trim() || sending) return;
+  if (!message.trim() || sending) return;
 
-    setSending(true);
+  setSending(true);
 
-    try {
-      await axios.post(`${BASE_URL}/api/chat`, {
-        customerName,
-        guestId,
-        message: message.trim(),
-      });
+  const prefixedMessage = `User-${userNumber}: ${message.trim()}`;
 
-      setMessage("");
-      loadMessages();
-    } catch (err) {
-      console.error("Send message failed:", err);
-      alert("Message failed to send. Please try again.");
-    } finally {
-      setSending(false);
-    }
-  };
+  try {
+    await axios.post(`${BASE_URL}/api/chat`, {
+      customerName,
+      guestId,
+      message: prefixedMessage,
+    });
+
+    setMessage("");
+    loadMessages();
+  } catch (err) {
+    console.error("Send message failed:", err);
+    alert("Message failed to send. Please try again.");
+  } finally {
+    setSending(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
@@ -141,7 +143,6 @@ export default function ChatPage({ user }) {
             }`}
           >
             <div className="inline-block px-3 py-2 rounded bg-gray-200">
-              <b>{msg.sender === "admin" ? "Admin" : `User-${userNumber}`}:</b>
               {msg.message}
             </div>
           </div>
