@@ -15,7 +15,7 @@ function UserBlockConfirm(props) {
 	function blockUser() {
 		const token = localStorage.getItem("token");
 		axios
-			.put(import.meta.env.VITE_API_URL + "/api/users/block/" + email,{
+			.put(import.meta.env.VITE_API_URL + "/users/block/" + email,{
                 isBlock: !props.user.isBlock
             },{
 				headers: {
@@ -46,7 +46,7 @@ function UserBlockConfirm(props) {
 				<div className="flex gap-[40px]">
 					<button
 						onClick={close}
-						className="w-[100px] bg-blue-600 p-[5px] text-white hover:bg-accent"
+						className="w-[100px] bg-accent-600 p-[5px] text-white hover:bg-accent"
 					>
 						Cancel
 					</button>
@@ -79,7 +79,7 @@ export default function AdminUsersPage() {
 				return;
 			}
 			axios
-				.get(import.meta.env.VITE_API_URL + "/api/users/all-users", {
+				.get(import.meta.env.VITE_API_URL + "/users/all-users", {
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},
@@ -169,7 +169,7 @@ export default function AdminUsersPage() {
 												</td>
 												<td className="px-4 py-3 font-mono text-sm text-secondary/80 flex items-center gap-2">
 													{user.email}
-													{user.isEmailVerified && <MdVerified color="blue" />}
+													{user.isEmailVerified && <MdVerified color="accent" />}
 												</td>
 												<td className="px-4 py-3 font-medium text-secondary">
 													{user.firstName}
@@ -223,5 +223,4 @@ export default function AdminUsersPage() {
 			</div>
 		</div>
 	);
-
 }
