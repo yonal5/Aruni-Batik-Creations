@@ -14,11 +14,14 @@ function UserBlockConfirm(props) {
 	const refresh = props.refresh;
 	function blockUser() {
 		const token = localStorage.getItem("token");
-		axios.put(`${import.meta.env.VITE_API_URL}/api/users/block/${email}`, 
-  { isBlock: !user.isBlock }, 
-  { headers: { Authorization: `Bearer ${token}` } }
-)
-.then((response) => {
+		axios
+			.put(import.meta.env.VITE_API_URL + "/api/users/block/" + email,{
+                isBlock: !props.user.isBlock
+            },{
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			}).then((response) => {
 				console.log(response.data);
 				close();
 				toast.success("User block status changed successfully");
@@ -43,7 +46,7 @@ function UserBlockConfirm(props) {
 				<div className="flex gap-[40px]">
 					<button
 						onClick={close}
-						className="w-[100px] bg-accent-600 p-[5px] text-white hover:bg-accent"
+						className="w-[100px] bg-blue-600 p-[5px] text-white hover:bg-accent"
 					>
 						Cancel
 					</button>
@@ -75,10 +78,7 @@ export default function AdminUsersPage() {
 				navigate("/login");
 				return;
 			}
-			axios.get(`${import.meta.env.VITE_API_URL}/api/users/all-users`, {
-  headers: { Authorization: `Bearer ${token}` },
-});
-axios
+			axios
 				.get(import.meta.env.VITE_API_URL + "/api/users/all-users", {
 					headers: {
 						Authorization: `Bearer ${token}`,
@@ -169,7 +169,7 @@ axios
 												</td>
 												<td className="px-4 py-3 font-mono text-sm text-secondary/80 flex items-center gap-2">
 													{user.email}
-													{user.isEmailVerified && <MdVerified color="accent" />}
+													{user.isEmailVerified && <MdVerified color="blue" />}
 												</td>
 												<td className="px-4 py-3 font-medium text-secondary">
 													{user.firstName}
@@ -223,4 +223,5 @@ axios
 			</div>
 		</div>
 	);
+
 }
