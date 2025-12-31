@@ -54,8 +54,8 @@ export default function AdminPage() {
 				<div className="flex flex-row w-[90%] h-[70px] bg-accent items-center rounded-2xl mb-[20px]">
 					<img
 						src="/logo.png"
-						alt="Aruni Batik Creations - Hand made with love"
-						className="h-[70px]"
+						alt="SnapSite - Best Computer & Gaming Store"
+						className="h-[70px] ml-4 rounded-2xl"
 					/>
 					<span className="text-white text-xl  ml-4">Admin panel</span>
 				</div>
