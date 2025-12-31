@@ -35,7 +35,9 @@ export default function About() {
 
           <p className="text-black italic font-medium">
             “Simple websites. Professional results.”
-          </p>
+          </p><br />
+          <p className="text-black italic font-medium">for WhatsApp Contact </p>
+          <p className="text-accent italic font-medium">+94 711017800</p> 
         </div>
       </div>
     </div>
