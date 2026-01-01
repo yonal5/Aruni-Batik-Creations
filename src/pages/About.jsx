@@ -14,29 +14,16 @@ export default function About() {
 
           <p className="text-black text-lg leading-relaxed mb-8">
             Welcome to{" "}
-            <span className="text-accent font-semibold">Aruni Batik Creations</span>, 
-            a platform dedicated to selling modern, professional websites for
-            businesses, startups, and individuals who want a strong online
-            presence.
-          </p>
-
-          <p className="text-black text-md leading-relaxed mb-8">
-            At Aruni Batik Creations, we focus on delivering clean design, smooth performance,
-            and user-friendly website solutions. Our websites are built to be
-            responsive, reliable, and easy to manage, helping you go online
-            quickly and confidently.
-          </p>
-
-          <p className="text-black text-md leading-relaxed mb-8">
-            Whether you need a personal website, business website, or a custom
-            web solution, Aruni Batik Creationsoffers affordable options with transparent
-            pricing and a smooth purchasing experience from start to finish.
+            <span className="text-accent font-semibold">Aruni Batik</span>, 
+            ඔබගේ ඇඳුම ඔබේ ආත්ම විශ්වාසයත් ලස්සනත් වැඩි කරයි.
+             ඔබේ රුව, හිත කියන විදිහට ලස්සනට  දකින්න කැමති ද?
+              එන්න අප සමඟ එකතු වෙන්න.High quality Batik Saree, Frock, Lungi, Sarong, Shirt
           </p>
 
           <p className="text-black italic font-medium">
-            “Simple websites. Professional results.”
+            “Aruni Batik-Handmade With Love.”
           </p><br />
-          <p className="text-black italic font-medium">for WhatsApp Contact  <spam className="text-accent italic font-medium">+94 711017800</spam> </p>
+          <p className="text-black italic font-medium">ඇණවුම් වට්ස්ඇප් අංකයට යොමුකරන්න.... <spam className="text-accent italic font-medium">#0711017800</spam> </p>
         </div>
       </div>
     </div>
