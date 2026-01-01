@@ -24,6 +24,7 @@ export default function About() {
             “Aruni Batik-Handmade With Love.”
           </p><br />
           <p className="text-black italic font-medium">ඇණවුම් වට්ස්ඇප් අංකයට යොමුකරන්න.... <spam className="text-accent italic font-medium">#0711017800</spam> </p>
+          <p className="text-black italic font-medium">FaceBook Page <spam className="text-accent italic font-medium">https://www.facebook.com/share/1bxadZviRm/</spam> </p>
         </div>
       </div>
     </div>
