@@ -121,17 +121,14 @@ export default function Header() {
                   aria-label="Mobile category"
                 >
                   <option value="">All</option>
-                  <option value="Keyboard">Keyboard</option>
-                  <option value="Mouse">Mouse</option>
-                  <option value="Motherboard">Motherboard</option>
-                  <option value="Grapics card">Grapics Card</option>
-                  <option value="Gaming case">Gaming Case</option>
-                  <option value="Pc pribild">PC Pre Bilde</option>
-                  <option value="Cooler">Cooler</option>
-                  <option value="Power Supply">Power Supply</option>
-                  <option value="CPU">CPU</option>
-                  <option value="Ram">Ram</option>
-                  <option value="Storage">Storage</option>
+                  <option value="one color saree">ONE Color Saree</option>
+								<option value="two color saree">TWO Color Saree</option>
+								<option value="three color saree">THREE Color Saree</option>
+								<option value="four color saree">FOUR Color Saree</option>
+								<option value="five color saree">FIVE Color Saree</option>
+								<option value="six color saree">SIX Color Saree</option>
+								<option value="seven color saree">SEVEN Color Saree</option>
+								<option value="eight color saree">EIGHT Color Saree</option>
                 </select>
 
                 <div className="flex gap-2 justify-center items-center">
@@ -235,7 +232,7 @@ export default function Header() {
             </button>
           </form>
         </div>
-        <div className="h-full hidden lg:flex w-[200px] absolute right-[100px] top-0  justify-end items-center gap-4">
+        <div className="h-full hidden lg:flex w-[200px] absolute right-[33px] top-0  justify-end items-center gap-4">
           <UserData />
         </div>
         <Link
@@ -280,7 +277,8 @@ export function TtitleBar() {
       <Link to="/cart" className="flex gap-2 items-center">
          <BsCart3 className="w-[30px] h-[30px]" />
       </Link>
-      
+  
+     
     </header>
   );
 }
