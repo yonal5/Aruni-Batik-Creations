@@ -7,7 +7,7 @@ export default function ProductCard(props) {
 	return (
 		<div className="w-[350px] h-auto shadow-2xl m-3 flex rounded-[40px] flex-col p-[25px]">
 			<Link to={"/overview/"+product.productID} >
-				<img className="w-full h-[250px] flex object-cover " src={product.images[0]}/>
+				<img className="w-full h-[450px] flex object-cover " src={product.images[0]}/>
             </Link>
 			
 			<h1 className="text-xl font-bold text-secondary">{product.name}</h1>
