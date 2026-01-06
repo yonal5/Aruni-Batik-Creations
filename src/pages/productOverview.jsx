@@ -5,12 +5,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Loader } from "../components/loader";
 import ImageSlider from "../components/imageSlider";
 import { addToCart } from "../utils/cart";
+import FullScreenZoom from "../components/FullScreenZoom";
+
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function ProductOverview({ user }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [zoomImage, setZoomImage] = useState(null);
 
   const [status, setStatus] = useState("loading");
   const [product, setProduct] = useState(null);
@@ -58,7 +61,7 @@ export default function ProductOverview({ user }) {
       await axios.post(`${BASE_URL}/api/chat`, {
         guestId,
         customerName,
-        message: `🛒User-${userNumber} Checkout Cart Items:\n${productMessage} `,
+        message: `🛒User-${userNumber} Checkout Items:\n${productMessage} `,
       });
 
       navigate("/chat");
@@ -86,9 +89,11 @@ export default function ProductOverview({ user }) {
         {/* Image */}
         <div className="lg:w-1/2 w-full bg-gray-100 flex justify-center items-center p-4 sm:p-6">
           <ImageSlider
-            images={product?.images || []}
-            className="rounded-xl shadow-md"
-          />
+  images={product?.images || []}
+  onImageClick={(img) => setZoomImage(img)}
+  className="rounded-xl shadow-md"
+/>
+
         </div>
 
         {/* Details */}

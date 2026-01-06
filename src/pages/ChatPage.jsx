@@ -7,7 +7,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 export default function ChatPage({ user }) {
   const location = useLocation();
   const cartFromState = location.state?.cart || [];
-
+  const [selectedImage, setSelectedImage] = useState(null);
   const [messages, setMessages] = useState([]);
   const [customerName, setCustomerName] = useState("");
   const [message, setMessage] = useState("");
@@ -25,6 +25,33 @@ export default function ChatPage({ user }) {
     }
     return id;
   });
+const sendImage = async () => {
+  if (!selectedImage || sending) return;
+
+  setSending(true);
+
+  const formData = new FormData();
+  formData.append("image", selectedImage);
+  formData.append("guestId", guestId);
+  formData.append("customerName", customerName);
+
+  try {
+    await axios.post(`${BASE_URL}/api/chat/image`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+      },
+    });
+
+    setSelectedImage(null);
+    loadMessages();
+  } catch (err) {
+    console.error("Image upload failed:", err);
+    alert("Image upload failed");
+  } finally {
+    setSending(false);
+  }
+};
 
   /* =========================
      STABLE USER NUMBER
@@ -139,7 +166,7 @@ export default function ChatPage({ user }) {
           <div
             key={msg._id}
             className={`my-2 text-sm ${
-              msg.sender === "admin" ? "text-right" : "text-left"
+              msg.sender === "admin" ? "text-red-600 text-right" : "text-left"
             }`}
           >
             <div className="inline-block px-3 py-2 rounded bg-gray-200">
