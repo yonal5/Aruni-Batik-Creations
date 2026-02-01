@@ -4,7 +4,6 @@ import mediaUpload from "../utils/mediaUpload";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/header";
-import { TtitleBar } from "../components/header";
 
 
 export default function UserSettings() {
@@ -97,7 +96,7 @@ export default function UserSettings() {
 
 	return (<div>
 		<Header/>
-			  <TtitleBar />
+
 
   <div className="min-h-screen bg-gradient-to-br from-primary via-primary/90 to-secondary/80 flex items-center justify-center px-4 py-12">
 	
@@ -231,4 +230,5 @@ export default function UserSettings() {
     </div>
   </div>
   </div>
+
 )}
