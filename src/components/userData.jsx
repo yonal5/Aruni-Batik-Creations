@@ -1,7 +1,7 @@
 import axios from "axios";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export default function UserDataMobile() {
+export default function UserData() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -24,9 +24,9 @@ export default function UserDataMobile() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Close menu on outside click
+  // Click-outside to close menu
   useEffect(() => {
-    function handleClickOutside(e) {
+    function onDocClick(e) {
       if (!menuOpen) return;
       if (
         menuRef.current &&
@@ -37,8 +37,15 @@ export default function UserDataMobile() {
         setMenuOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    function onEsc(e) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onEsc);
+    };
   }, [menuOpen]);
 
   const initials =
@@ -54,8 +61,8 @@ export default function UserDataMobile() {
   };
 
   return (
-    <div className="w-full flex items-center justify-center relative">
-      {/* Loading */}
+    <div className="w-full flex items-center justify-center">
+      {/* Loading state */}
       {loading && (
         <div
           className="h-9 w-9 rounded-full border-2 border-primary border-b-transparent animate-spin"
@@ -64,7 +71,7 @@ export default function UserDataMobile() {
         />
       )}
 
-      {/* Logged-out */}
+      {/* Logged-out CTA */}
       {!loading && !user && (
         <a
           href="/login"
@@ -74,106 +81,122 @@ export default function UserDataMobile() {
         </a>
       )}
 
-      {/* Logged-in */}
+      {/* Logged-in menu */}
       {user && (
-        <div className="relative flex flex-col items-center gap-2">
-          {/* Avatar */}
-          {user.image ? (
-            <img
-              src={user.image}
-              alt={`${user.firstName ?? "User"} avatar`}
-              className="h-12 w-12 rounded-full ring-2 ring-accent/50 object-cover"
-            />
-          ) : (
-            <div className="h-12 w-12 rounded-full bg-accent text-white ring-2 ring-accent/50 flex items-center justify-center text-lg font-bold">
-              {initials}
+        <div className="relative flex items-center gap-3">
+          <div className="flex items-center gap-3 rounded-full bg-primary/80 px-3 py-1.5 shadow-sm ring-1 ring-secondary/10">
+            {/* Avatar */}
+            {user.image ? (
+              <img
+                src={user.image}
+                alt={`${user.firstName ?? "User"} avatar`}
+                className="h-9 w-9 rounded-full ring-2 ring-accent/50 object-cover"
+              />
+            ) : (
+              <div className="h-9 w-9 rounded-full bg-accent text-white ring-2 ring-accent/50 flex items-center justify-center text-sm font-bold">
+                {initials}
+              </div>
+            )}
+
+            {/* Name + role (optional) */}
+            <div className="hidden min-[1024px]:flex flex-col leading-tight">
+              <span className="text-sm font-semibold text-secondary">
+                {user.firstName ?? "User"}
+              </span>
+              {user.role && (
+                <span className="text-[11px] text-secondary/70">{user.role}</span>
+              )}
+            </div>
+
+            {/* Menu button */}
+            <button
+              ref={btnRef}
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-full text-secondary/80 hover:bg-secondary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              onKeyDown={(e) => {
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  setMenuOpen(true);
+                  // focus first item after opening (next tick)
+                  setTimeout(() => {
+                    const first = menuRef.current?.querySelector("button[data-menu-item]");
+                    first?.focus();
+                  }, 0);
+                }
+              }}
+              title="Open menu"
+            >
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
+              </svg>
+            </button>
+          </div>
+
+          {menuOpen && (
+          <div
+              ref={menuRef}
+              role="menu"
+              className="
+                absolute top-12 z-50 w-56 rounded-xl bg-white p-1.5 shadow-lg
+                left-1/2 -translate-x-1/2
+                lg:left-auto lg:translate-x-0 lg:right-0
+              "
+            >
+              <div className="px-3 py-2 border-b border-secondary/10">
+                <p className="text-sm font-semibold text-secondary">
+                  {user.firstName ?? "User"}
+                </p>
+                {user.role && (
+                  <p className="text-xs text-secondary/70">{user.role}</p>
+                )}
+              </div>
+
+              {/* Home button if admin is in admin panel */}
+              {user.role === "admin" && window.location.pathname.includes("/admin") && (
+                <>
+                  <div className="my-1 h-px bg-secondary/10" />
+                  <MenuItem
+                    onClick={() => (window.location.href = "/")}
+                    label="Go to Home"
+                  />
+                </>
+              )}
+
+              <MenuItem
+                onClick={() => (window.location.href = "/settings")}
+                label="Account Settings"
+              />
+              <MenuItem
+                onClick={() => (window.location.href = "/cart")}
+                label="Cart"
+              />
+
+              {user.role === "admin" && (
+                <>
+                  <div className="my-1 h-px bg-secondary/10" />
+                  <MenuItem
+                    onClick={() => (window.location.href = "/admin")}
+                    label="Admin Panel"
+                  />
+                </>
+              )}
+
+              <div className="my-1 h-px bg-secondary/10" />
+              <MenuItem
+                destructive
+                onClick={handleLogout}
+                label="Logout"
+              />
             </div>
           )}
-
-          {/* Name */}
-          <span className="text-sm font-semibold text-secondary">
-            {user.firstName ?? user.email ?? "Account"}
-          </span>
-
-          {/* Account Button */}
-          <button
-            ref={btnRef}
-            type="button"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-            className="inline-flex items-center gap-2 bg-accent text-white px-4 py-2 rounded-full shadow hover:brightness-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-          >
-            Account
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-            {menuOpen && (
-            <div
-                ref={menuRef}
-                role="menu"
-                className="absolute z-50 w-56 rounded-xl bg-white shadow-lg transition-all"
-                style={{
-                left: "50%",
-                transform: "translateX(-50%)",
-                top: (() => {
-                    const rect = btnRef.current?.getBoundingClientRect();
-                    if (!rect) return "100%"; // fallback
-                    const spaceBelow = window.innerHeight - rect.bottom;
-                    const menuHeight = 200; // approx height
-                    if (spaceBelow < menuHeight) {
-                    return undefined; // we'll use bottom instead
-                    }
-                    return rect.bottom + 8; // 8px gap below button
-                })(),
-                bottom: (() => {
-                    const rect = btnRef.current?.getBoundingClientRect();
-                    if (!rect) return undefined;
-                    const spaceBelow = window.innerHeight - rect.bottom;
-                    const menuHeight = 200;
-                    if (spaceBelow < menuHeight) {
-                    return window.innerHeight - rect.top + 8; // open above
-                    }
-                    return undefined;
-                })(),
-                }}
-            >
-                <div className="px-3 py-2 border-b border-secondary/10">
-                <p className="text-sm font-semibold text-secondary">{user.firstName ?? "User"}</p>
-                {user.role && <p className="text-xs text-secondary/70">{user.role}</p>}
-                </div>
-
-                {user.role === "admin" && window.location.pathname.includes("/admin") && (
-                <>
-                    <div className="my-1 h-px bg-secondary/10" />
-                    <MenuItem onClick={() => (window.location.href = "/")} label="Go to Home" />
-                </>
-                )}
-
-                <MenuItem onClick={() => (window.location.href = "/settings")} label="Account Settings" />
-                <MenuItem onClick={() => (window.location.href = "/cart")} label="Cart" />
-
-                {user.role === "admin" && (
-                <>
-                    <div className="my-1 h-px bg-secondary/10" />
-                    <MenuItem onClick={() => (window.location.href = "/admin")} label="Admin Panel" />
-                </>
-                )}
-
-                <div className="my-1 h-px bg-secondary/10" />
-                <MenuItem destructive onClick={handleLogout} label="Logout" />
-            </div>
-            )}
 
         </div>
       )}
@@ -189,8 +212,25 @@ function MenuItem({ label, onClick, destructive = false }) {
       className={`w-full rounded-lg px-3 py-2 text-left text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
         destructive
           ? "text-red-600 hover:bg-red-50"
-          : "text-secondary hover:bg-primary/80"
+          : "text-secondary hover:bg-primary"
       }`}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          const next = e.currentTarget.parentElement?.querySelectorAll("[data-menu-item]");
+          if (!next) return;
+          const items = Array.from(next);
+          const idx = items.indexOf(e.currentTarget);
+          items[(idx + 1) % items.length]?.focus();
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          const next = e.currentTarget.parentElement?.querySelectorAll("[data-menu-item]");
+          if (!next) return;
+          const items = Array.from(next);
+          const idx = items.indexOf(e.currentTarget);
+          items[(idx - 1 + items.length) % items.length]?.focus();
+        }
+      }}
     >
       {label}
     </button>
