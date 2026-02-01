@@ -1,5 +1,5 @@
 import { Route, Routes, useLocation } from "react-router-dom";
-import Header, { ProductNews, TtitleBar,} from "../components/header";
+import Header, { ProductNews } from "../components/header";
 import { ProductPage } from "./productPage";
 import ProductOverview from "./productOverview";
 
@@ -36,7 +36,6 @@ export default function HomePage() {
           
         </>
       )}
-      <TtitleBar />
 
       <Routes>
         <Route path="/" element={<ProductPage />} />
