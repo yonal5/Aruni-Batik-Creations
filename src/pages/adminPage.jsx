@@ -4,11 +4,11 @@ import { MdShoppingCartCheckout } from "react-icons/md";
 import { BsBox2Heart } from "react-icons/bs";
 import { HiOutlineUsers } from "react-icons/hi";
 import { FiMenu, FiX } from "react-icons/fi";
-
+import UserData from "../components/userData.jsx";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-
+import AdminHomePage from "./admin/adminHome";
 import AdminProductPage from "./admin/adminProductPage";
 import AddProductPage from "./admin/adminAddNewProduct";
 import UpdateProductPage from "./admin/adminUpdateProduct";
@@ -16,6 +16,7 @@ import AdminChat from "./admin/AdminChat";
 import AdminUsersPage from "./admin/usersPage";
 import AdminDashboard from "./admin/adminDash";
 import { Loader } from "../components/loader";
+import { FaHome } from "react-icons/fa";
 
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ export default function AdminPage() {
   const SidebarLinks = () => (
     <>
       <Link
-        to="/admin"
+        to="/admin/dashboard"
         className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
         onClick={() => setMobileMenuOpen(false)}
       >
@@ -83,6 +84,14 @@ export default function AdminPage() {
         <HiOutlineUsers />
         Users
       </Link>
+      <Link
+        to="/"
+        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        <FaHome />
+        Return to Shop
+      </Link>
     </>
   );
 
@@ -101,6 +110,7 @@ export default function AdminPage() {
             className="h-[70px] ml-4 rounded-2xl"
           />
           <span className="text-white text-xl ml-4">Admin panel</span>
+        
         </div>
 
         {/* Close button for mobile */}
@@ -112,8 +122,10 @@ export default function AdminPage() {
             <FiX />
           </button>
         </div>
-
+         <UserData/>
         <SidebarLinks />
+
+      
       </div>
 
       {/* Mobile top bar */}
@@ -126,13 +138,13 @@ export default function AdminPage() {
         </button>
         <span className="text-white font-semibold">Admin Panel</span>
       </div>
-
       {/* Main content */}
       <div className="w-full lg:w-[calc(100%-300px)] h-full border-[4px] border-accent rounded-[20px] overflow-hidden">
         <div className="h-full w-full max-w-full max-h-full overflow-y-scroll">
           {userLoaded ? (
             <Routes>
-              <Route path="/" element={<AdminDashboard />} />
+              <Route path="/" element={<AdminHomePage />} />
+              <Route path="/dashboard" element={<AdminDashboard />} />
               <Route path="/products" element={<AdminProductPage />} />
               <Route path="/chat" element={<AdminChat />} />
               <Route path="/add-product" element={<AddProductPage />} />
