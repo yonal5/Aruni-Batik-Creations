@@ -19,6 +19,8 @@ export default function Header() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const categoryRef = useRef(null);
 
   // derive page and pageSize from URL (keep read-only here)
   const params = new URLSearchParams(location.search);
@@ -40,6 +42,15 @@ export default function Header() {
     });
     navigate(`${location.pathname}?${next.toString()}`);
   };
+useEffect(() => {
+  function handleClickOutside(e) {
+    if (categoryRef.current && !categoryRef.current.contains(e.target)) {
+      setCategoryOpen(false);
+    }
+  }
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, []);
 
   // prevent background scroll when mobile search is open
   useEffect(() => {
@@ -72,7 +83,7 @@ export default function Header() {
     <div className="w-full h-full flex relative ">
       <img
         src="/logo.png"
-        className="hidden lg:flex h-full absolute w-[160px] left-0  object-cover"
+        className="hidden lg:flex h-full absolute w-[220px] left-0  object-cover"
       />
       {/* mobile header: menu, logo and search toggle */}
       <div className="lg:hidden w-full relative flex justify-center items-center">
@@ -88,6 +99,7 @@ export default function Header() {
         >
           <FaSearch />
         </button>
+        
       </div>
 
       {/* mobile search overlay - centered, high z and scroll-safe */}
@@ -121,14 +133,13 @@ export default function Header() {
                 aria-label="Mobile category"
               >
                 <option value="">All</option>
-                <option value="one color saree">ONE Color Saree</option>
-                <option value="two color saree">TWO Color Saree</option>
-                <option value="three color saree">THREE Color Saree</option>
-                <option value="four color saree">FOUR Color Saree</option>
-                <option value="five color saree">FIVE Color Saree</option>
-                <option value="six color saree">SIX Color Saree</option>
-                <option value="seven color saree">SEVEN Color Saree</option>
-                <option value="eight color saree">EIGHT Color Saree</option>
+               <option value="Website blue">Website Blue</option>
+				<option value="Website green">Website Green</option>
+				<option value="Website red">Website Red</option>
+				<option value="Website yellow">Website Yellow</option>
+				<option value="Website perple">Website Perple</option>
+				<option value="Website orenge">Website Orenge</option>
+				<option value="Website black">Website Black</option>
               </select>
 
               <div className="flex gap-2 justify-center items-center">
@@ -146,6 +157,7 @@ export default function Header() {
                 >
                   Close
                 </button>
+                
               </div>
             </form>
           </div>
@@ -186,7 +198,30 @@ export default function Header() {
 
       <div className="hidden object-cover h-full lg:flex justify-center items-center w-full text-lg gap-[20px]">
         {/* Search form */}
-        <form
+       
+    
+          <div className="lg:flex justify-center left-[100px] items-center gap-7"> 
+        <Link to="/" className="flex gap-2 items-center hover:text-black transition">
+          <span>Home</span>
+        </Link>
+
+        <Link to="/products" className="flex gap-2 items-center hover:text-black transition">
+
+          <span>Products</span>
+        </Link>
+
+        <Link to="/chat" className="flex gap-2 items-center hover:text-black transition">
+
+          <span>Chat</span>
+        </Link>
+
+        <Link to="/about" className="flex gap-2 items-center hover:text-black transition">
+          About Us
+        </Link>
+
+        
+        </div>  
+       <form
           onSubmit={(e) => {
             e.preventDefault();
             if (searchTerm.trim() === "" && !category) return;
@@ -195,7 +230,7 @@ export default function Header() {
             if (category) params.set("category", category);
             navigate(`/products?${params.toString()}`);
           }}
-          className="w-[480px] flex items-center gap-2"
+          className="w-[280px] flex items-center gap-2"
         >
           <input
             type="text"
@@ -205,25 +240,53 @@ export default function Header() {
             className="w-full rounded px-3 py-2 text-black bg-primary"
             aria-label="Search"
           />
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="rounded px-2 py-2 text-black bg-primary"
-            aria-label="Category filter"
-          >
-            <option value="">All categories</option>
-            <option value="one color saree">ONE Color Saree</option>
-            <option value="two color saree">TWO Color Saree</option>
-            <option value="three color saree">THREE Color Saree</option>
-            <option value="four color saree">FOUR Color Saree</option>
-            <option value="five color saree">FIVE Color Saree</option>
-            <option value="six color saree">SIX Color Saree</option>
-            <option value="seven color saree">SEVEN Color Saree</option>
-            <option value="eight color saree">EIGHT Color Saree</option>
-          </select>
+          <div className="relative" ref={categoryRef}>
+           
+            <button
+              type="button"
+              onClick={() => setCategoryOpen((v) => !v)}
+              className="p-2 rounded bg-primary text-black hover:bg-black hover:text-white transition"
+              aria-label="Open categories"
+            >
+              <AiOutlineProduct className="text-xl" />
+            </button>
+
+            {/* CATEGORY POPUP */}
+            {categoryOpen && (
+              <div className="absolute right-0 mt-2 w-56 text-accent bg-white rounded-lg shadow-lg z-50 border">
+                {[
+                  ["", "All Categories"],
+                  ["Website blue", "Website Blue"],
+                  ["Website green", "Website Green"],
+                  ["Website red", "Website Red"],
+                  ["Website yellow", "Website Yellow"],
+                  ["Website perple", "Website Perple"],
+                  ["Website orenge", "Website Orenge"],
+                  ["Website black", "Website Black"],
+
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => {
+                      setCategory(value);
+                      setCategoryOpen(false);
+
+                      const params = new URLSearchParams(location.search);
+                      value ? params.set("category", value) : params.delete("category");
+                      navigate(`/products?${params.toString()}`);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-white transition"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <button
             type="submit"
-            className="bg-accent text-white p-2 rounded hover:bg-white hover:text-accent transition"
+            className="bg-accent text-white p-2 rounded hover:bg-black hover:text-accent transition"
             aria-label="Submit search"
           >
             <FaSearch />
@@ -231,7 +294,7 @@ export default function Header() {
         </form>
       </div>
       
-      <div className="h-full hidden lg:flex w-[200px] absolute right-[33px] top-0  justify-end items-center gap-4">
+      <div className="h-full hidden lg:flex w-[200px] absolute right-[8px] top-0  justify-end items-center gap-4">
         <UserData />
       </div>
 
@@ -249,30 +312,30 @@ export function TtitleBar() {
   return (
     <header className="w-full h-[100px] mr-[80px] text-white px-[40px] hidden lg:flex justify-center items-center gap-10 bg-accent">
            
-      <Link to="/" className="flex gap-2 items-center">
+      <Link to="/" className="flex gap-2 items-center hover:text-black transition">
         <FaHome className="text-3xl cursor-pointer" />
         <span>Home</span>
       </Link>
 
-      <Link to="/products" className="flex gap-2 items-center">
+      <Link to="/products" className="flex gap-2 items-center hover:text-black transition">
         <AiOutlineProduct className="text-3xl cursor-pointer" />
         <span>Products</span>
       </Link>
 
-      <Link to="/chat" className="flex gap-2 items-center">
+      <Link to="/chat" className="flex gap-2 items-center hover:text-black transition">
         <IoMdContacts className="text-3xl cursor-pointer" />
         <span>Chat</span>
       </Link>
 
-      <Link to="/about" className="flex gap-2 items-center">
+      <Link to="/about" className="flex gap-2 items-center hover:text-black transition">
         About Us
       </Link>
 
-      <Link to="/settings" className="hover:text-accent transition">
+      <Link to="/settings" className="flex gap-2 items-center hover:text-black transition">
         <IoSettingsSharp className="text-3xl cursor-pointer" />
       </Link>
-      
-      <Link to="/cart" className="flex gap-2 items-center">
+
+      <Link to="/cart" className="flex gap-2 items-center hover:text-black transition">
          <BsCart3 className="w-[30px] h-[30px]" />
       </Link>
   
