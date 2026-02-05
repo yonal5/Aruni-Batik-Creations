@@ -28,7 +28,19 @@ export default function HomePage() {
   return (
     <div className="w-auto h-auto bg-white">
       <Header/>
+      {location.pathname === "/" && (
+        <div className="relative w-full md:h-full overflow-hidden bg-black shadow-lg">
+          <img
+            src="/yonallll.png"
+            alt="WebSell"
+            className="w-full h-full object-cover"
+          />
 
+          {/* WORKING BUTTON */}
+          
+
+        </div>
+      )}
       
 
       <Routes>
