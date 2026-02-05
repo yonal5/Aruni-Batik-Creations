@@ -359,7 +359,7 @@ export function ProductNews() {
  //     { type: "image", src: "/12 (9).jpg", className: "object-cover" }, 
  //     { type: "image", src: "/12 (10).jpg", className: "object-cover" },
  //     { type: "image", src: "/12 (12).jpg", className: "object-cover" },
-      { type: "image", src: "/websell.png", className: "" },
+      { type: "image", src: "/yonallll.png", className: "" },
   ];
 
   const mobileSlides = [
