@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import mediaUpload from "../../utils/mediaUpload";
-import { FaImage, FaPaperPlane } from "react-icons/fa";
+import { FaImage, FaPaperPlane, FaBell } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -12,8 +12,12 @@ export default function AdminChat() {
   const [text, setText] = useState("");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [lastUnread, setLastUnread] = useState({}); // track last unread per customer
 
   const chatEndRef = useRef();
+
+  // Notification sound
+  const notificationSound = new Audio("/notification.mp3");
 
   // Load customer list
   const loadCustomers = async () => {
@@ -35,10 +39,26 @@ export default function AdminChat() {
     if (!selectedGuestId) return;
 
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/chat/admin`,
-        { params: { guestId: selectedGuestId } }
-      );
+      const res = await axios.get(`${BASE_URL}/api/chat/admin`, {
+        params: { guestId: selectedGuestId },
+      });
+
+      // Play notification if a new unread customer message arrives
+      if (
+        res.data.length &&
+        res.data[res.data.length - 1].sender === "customer"
+      ) {
+        const lastMsgId = res.data[res.data.length - 1]._id;
+        if (lastUnread[selectedGuestId] !== lastMsgId) {
+          if (
+            !messages.find((m) => m._id === lastMsgId) // new message
+          ) {
+            notificationSound.play().catch(() => {});
+          }
+          setLastUnread((prev) => ({ ...prev, [selectedGuestId]: lastMsgId }));
+        }
+      }
+
       setMessages(res.data);
     } catch (err) {
       console.error("Load messages failed:", err);
@@ -117,11 +137,11 @@ export default function AdminChat() {
                 selectedGuestId === c.userId ? "bg-green-100" : ""
               }`}
             >
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span>{c.customerName || c.userId}</span>
-                {c.unreadCount > 0 && (
-                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    {c.unreadCount}
+                {c.unreadCount > 0 && selectedGuestId !== c.userId && (
+                  <span className="flex items-center gap-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                    <FaBell /> {c.unreadCount}
                   </span>
                 )}
               </div>
@@ -146,12 +166,16 @@ export default function AdminChat() {
               }`}
             >
               <div
-                className={`px-3 py-2 rounded-lg max-w-xs shadow ${
+                className={`px-3 py-2 rounded-lg max-w-xs shadow break-words ${
                   m.sender === "admin" ? "bg-green-500 text-white" : "bg-white"
                 }`}
               >
-                {m.type === "image" ? (
-                  <img src={m.imageUrl} alt="" className="rounded max-w-[220px]" />
+                {m.type === "image" && m.imageUrl ? (
+                  <img
+                    src={m.imageUrl}
+                    alt=""
+                    className="rounded max-w-[220px]"
+                  />
                 ) : (
                   m.message
                 )}
