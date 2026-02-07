@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import mediaUpload from "../utils/mediaUpload";
+import mediaUpload from "../../utils/mediaUpload";
 import { FaImage, FaPaperPlane } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
