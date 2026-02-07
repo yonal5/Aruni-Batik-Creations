@@ -50,28 +50,37 @@ export default function UserData() {
       ? `${(user.firstName?.[0] ?? "")}${(user.lastName?.[0] ?? "")}`.toUpperCase()
       : "U";
 
-const logout = () => {
-  localStorage.removeItem("token");
-  setUser(null);
-  setMenuOpen(false);
+  const logout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    setMenuOpen(false);
 
-  setLogoutMessage("You have successfully logged out");
+    setLogoutMessage("You have successfully logged out");
 
-  setTimeout(() => {
-    setLogoutMessage("");
-    window.location.href = "/login";
-  }, 1000); // 1 second
-};
+    setTimeout(() => {
+      setLogoutMessage("");
+      window.location.href = "/login";
+    }, 1000);
+  };
+
+  /* ================= AVATAR FIX ================= */
+  const avatarSrc =
+    user?.image ||
+    user?.profileImage ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      `${user?.firstName || "User"} ${user?.lastName || ""}`
+    )}&background=0D8ABC&color=fff`;
 
   /* ================= RENDER ================= */
   return (
     <div className="relative flex items-center justify-end shrink-0">
+
       {/* Logout message */}
-{logoutMessage && (
-  <div className="fixed top-6 right-6 z-[9999] rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-lg animate-fade-in">
-    {logoutMessage}
-  </div>
-)}
+      {logoutMessage && (
+        <div className="fixed top-6 right-6 z-[9999] rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-lg animate-fade-in">
+          {logoutMessage}
+        </div>
+      )}
 
       {loading && (
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-b-transparent" />
@@ -90,6 +99,7 @@ const logout = () => {
       {/* Logged in */}
       {user && (
         <div className="relative">
+
           {/* USER BAR */}
           <div
             className="
@@ -98,19 +108,20 @@ const logout = () => {
               max-[1124px]:px-2
             "
           >
-            {/* Avatar */}
-            {user.image ? (
-              <img
-                src={user.image}
-                className="h-9 w-9 rounded-full object-cover ring-2 ring-accent/50"
-              />
-            ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
-                {initials}
-              </div>
-            )}
 
-            {/* Name + Role (HIDE BELOW 1124px) */}
+            {/* Avatar (FIXED) */}
+            <img
+              src={avatarSrc}
+              alt="User"
+              className="h-9 w-9 rounded-full object-cover ring-2 ring-accent/50"
+              onError={(e) => {
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  `${user?.firstName || "User"}`
+                )}&background=0D8ABC&color=fff`;
+              }}
+            />
+
+            {/* Name + Role */}
             <div className="flex flex-col leading-tight max-[1124px]:hidden">
               <span className="text-sm font-semibold text-secondary">
                 {user.firstName}
@@ -132,30 +143,34 @@ const logout = () => {
                 <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
               </svg>
             </button>
+
           </div>
 
           {/* DROPDOWN */}
           {menuOpen && (
             <div
-               ref={menuRef}
-                role="menu"
-                className="
-                  absolute top-12 z-50 w-56 rounded-xl bg-white p-1.5 shadow-lg
-                  left-1/2 -translate-x-1/2
-                  lg:left-auto lg:translate-x-0 lg:right-0
-                "
-              >
-                <div className="px-3 py-2 border-b border-secondary/10">
-                  <p className="text-sm font-semibold text-secondary">
-                    {user.firstName ?? "User"} {user.lastName ?? "User"}
-                  </p>
-                  {user.role && (
-                    <p className="text-xs text-secondary/70">{user.role}</p>
-                  )}
-                </div>
+              ref={menuRef}
+              role="menu"
+              className="
+                absolute top-12 z-50 w-56 rounded-xl bg-white p-1.5 shadow-lg
+                left-1/2 -translate-x-1/2
+                lg:left-auto lg:translate-x-0 lg:right-0
+              "
+            >
 
-                {/* Home button if admin is in admin panel */}
-                {user.role === "admin" && window.location.pathname.includes("/admin") && (
+              <div className="px-3 py-2 border-b border-secondary/10">
+                <p className="text-sm font-semibold text-secondary">
+                  {user.firstName ?? "User"} {user.lastName ?? "User"}
+                </p>
+                {user.role && (
+                  <p className="text-xs text-secondary/70">
+                    {user.role}
+                  </p>
+                )}
+              </div>
+
+              {user.role === "admin" &&
+                window.location.pathname.includes("/admin") && (
                   <>
                     <div className="my-1 h-px bg-secondary/10" />
                     <MenuItem
@@ -165,30 +180,33 @@ const logout = () => {
                   </>
                 )}
 
-                <MenuItem
-                  onClick={() => (window.location.href = "/settings")}
-                  label="Account Settings"
-                />
-                <MenuItem
-                  onClick={() => (window.location.href = "/cart")}
-                  label="Cart"
-                />
+              <MenuItem
+                onClick={() => (window.location.href = "/settings")}
+                label="Account Settings"
+              />
 
-                {user.role === "admin" && (
-                  <>
-                    <div className="my-1 h-px bg-secondary/10" />
-                    <MenuItem
-                      onClick={() => (window.location.href = "/admin")}
-                      label="Admin Panel"
-                    />
-                  </>
-                )}
+              <MenuItem
+                onClick={() => (window.location.href = "/cart")}
+                label="Cart"
+              />
 
-                <div className="my-1 h-px bg-secondary/10" />
+              {user.role === "admin" && (
+                <>
+                  <div className="my-1 h-px bg-secondary/10" />
+                  <MenuItem
+                    onClick={() => (window.location.href = "/admin")}
+                    label="Admin Panel"
+                  />
+                </>
+              )}
+
+              <div className="my-1 h-px bg-secondary/10" />
+
               <MenuItem label="Logout" onClick={logout} destructive />
-                
+
             </div>
           )}
+
         </div>
       )}
     </div>
