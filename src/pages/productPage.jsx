@@ -116,7 +116,7 @@ export function ProductPage() {
       {
         loading ? <Loader/> :
 
-        <div className="w-full h-full flex flex-row flex-wrap justify-center loop bg-black">
+        <div className="w-full h-full flex flex-row flex-wrap justify-center loop bg-white">
           {
             filtered.length === 0 ? (
               <div className="p-8">No products found.</div>
@@ -187,7 +187,7 @@ export default function Pagination({ total, page, pageSize, onPageChange, onPage
           <button
             key={p}
             onClick={() => onPageChange(p)}
-            className={`px-3 py-1 border rounded ${p === page ? "bg-primary text-black" : ""}`}
+            className={`px-3 py-1 border rounded ${p === page ? "bg-primary text-white" : ""}`}
           >
             {p}
           </button>
