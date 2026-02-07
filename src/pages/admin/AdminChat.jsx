@@ -12,55 +12,36 @@ export default function AdminChat() {
   const [text, setText] = useState("");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [lastUnread, setLastUnread] = useState({}); // track last unread per customer
 
-  const chatEndRef = useRef(null);
-  const notificationSoundRef = useRef(null);
-  const lastMessageIdRef = useRef(null);
+  const chatEndRef = useRef();
 
-  // init sound ONCE
-  useEffect(() => {
-    notificationSoundRef.current = new Audio("/notification.mp3");
-  }, []);
+  // Notification sound
+  const notificationSound = new Audio("/notification.mp3");
 
-  /*
-  ========================
-  LOAD CUSTOMERS
-  ========================
-  */
+  // Load customer list
   const loadCustomers = async () => {
-    try {
-      const res = await axios.get(`${BASE_URL}/api/chat/customers`);
+  try {
+    const res = await axios.get(`${BASE_URL}/api/chat/customers`);
+    
+    // Sort by unread count descending, then by name
+    const sorted = res.data.sort((a, b) => {
+      if (b.unreadCount !== a.unreadCount) return b.unreadCount - a.unreadCount;
+      return (a.customerName || "").localeCompare(b.customerName || "");
+    });
 
-      setCustomers(prev => {
-        // prevent unnecessary rerender
-        if (JSON.stringify(prev) === JSON.stringify(res.data)) {
-          return prev;
-        }
+    setCustomers(sorted);
 
-        return res.data.sort((a, b) => {
-          if (b.unreadCount !== a.unreadCount)
-            return b.unreadCount - a.unreadCount;
-
-          return (a.customerName || "")
-            .localeCompare(b.customerName || "");
-        });
-      });
-
-      // select first customer automatically
-      if (!selectedGuestId && res.data.length > 0) {
-        setSelectedGuestId(res.data[0].userId);
-      }
-
-    } catch (err) {
-      console.error("Load customers failed:", err);
+    if (!selectedGuestId && sorted.length > 0) {
+      setSelectedGuestId(sorted[0].userId);
     }
-  };
+  } catch (err) {
+    console.error("Load customers failed:", err);
+  }
+};
 
-  /*
-  ========================
-  LOAD MESSAGES
-  ========================
-  */
+
+  // Load messages for selected customer
   const loadMessages = async () => {
     if (!selectedGuestId) return;
 
@@ -69,38 +50,30 @@ export default function AdminChat() {
         params: { guestId: selectedGuestId },
       });
 
-      const newMessages = res.data;
-
-      // notification check
-      if (newMessages.length > 0) {
-        const lastMsg = newMessages[newMessages.length - 1];
-
-        if (
-          lastMsg.sender === "customer" &&
-          lastMessageIdRef.current !== lastMsg._id
-        ) {
-          notificationSoundRef.current
-            ?.play()
-            .catch(() => {});
-
-          lastMessageIdRef.current = lastMsg._id;
+      // Play notification if a new unread customer message arrives
+      if (
+        res.data.length &&
+        res.data[res.data.length - 1].sender === "customer"
+      ) {
+        const lastMsgId = res.data[res.data.length - 1]._id;
+        if (lastUnread[selectedGuestId] !== lastMsgId) {
+          if (
+            !messages.find((m) => m._id === lastMsgId) // new message
+          ) {
+            notificationSound.play().catch(() => {});
+          }
+          setLastUnread((prev) => ({ ...prev, [selectedGuestId]: lastMsgId }));
         }
       }
 
-      setMessages(newMessages);
-
+      setMessages(res.data);
     } catch (err) {
       console.error("Load messages failed:", err);
     }
   };
 
-  /*
-  ========================
-  POLLING
-  ========================
-  */
+  // Polling customers and messages
   useEffect(() => {
-
     loadCustomers();
     loadMessages();
 
@@ -110,242 +83,160 @@ export default function AdminChat() {
     }, 2000);
 
     return () => clearInterval(interval);
-
   }, [selectedGuestId]);
 
-  /*
-  ========================
-  AUTO SCROLL
-  ========================
-  */
+  // Auto scroll to bottom
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({
-      behavior: "smooth"
-    });
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  /*
-  ========================
-  SEND TEXT
-  ========================
-  */
+  // Send text message
   const sendText = async () => {
-    if (!text.trim()) return;
+    if (!text.trim() || !selectedGuestId) return;
 
     try {
       setLoading(true);
-
-      await axios.post(
-        `${BASE_URL}/api/chat/admin/send`,
-        {
-          guestId: selectedGuestId,
-          message: text,
-          type: "text",
-        }
-      );
-
+      await axios.post(`${BASE_URL}/api/chat/admin/send`, {
+        guestId: selectedGuestId,
+        message: text,
+        type: "text",
+      });
       setText("");
       loadMessages();
-
     } catch (err) {
-      console.error(err);
+      console.error("Send text failed:", err);
     }
-
     setLoading(false);
   };
 
-  /*
-  ========================
-  SEND IMAGE
-  ========================
-  */
+  // Send image
   const sendImage = async () => {
-    if (!image) return;
+    if (!image || !selectedGuestId) return;
 
     try {
-
       setLoading(true);
-
       const imageUrl = await mediaUpload(image);
-
-      await axios.post(
-        `${BASE_URL}/api/chat/admin/send`,
-        {
-          guestId: selectedGuestId,
-          imageUrl,
-          type: "image",
-        }
-      );
-
+      await axios.post(`${BASE_URL}/api/chat/admin/send`, {
+        guestId: selectedGuestId,
+        imageUrl,
+        type: "image",
+      });
       setImage(null);
-
       loadMessages();
-
     } catch (err) {
-      console.error(err);
+      console.error("Send image failed:", err);
     }
-
     setLoading(false);
   };
 
-  /*
-  ========================
-  UI
-  ========================
-  */
   return (
     <div className="flex h-screen bg-gray-100">
 
       {/* CUSTOMER LIST */}
       <div className="w-80 bg-white border-r flex flex-col">
-
-        <div className="p-4 font-bold border-b">
-          Customers
-        </div>
-
+        <div className="p-4 font-bold border-b">Customers</div>
         <div className="flex-1 overflow-y-auto">
-
           {customers.map((c) => (
-
             <div
               key={c.userId}
               onClick={() => setSelectedGuestId(c.userId)}
               className={`p-3 border-b cursor-pointer hover:bg-gray-100 ${
-                selectedGuestId === c.userId
-                  ? "bg-gray-200"
-                  : ""
+                selectedGuestId === c.userId ? "bg-white-100" : ""
               }`}
             >
-
-              <div className="flex justify-between">
-
-                <span>
-                  {c.customerName || c.userId}
-                </span>
-
-                {c.unreadCount > 0 &&
-                  selectedGuestId !== c.userId && (
-
-                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
-
-                    <FaBell />
-                    {c.unreadCount}
-
+              <div className="flex justify-between items-center">
+                <span>{c.customerName || c.userId}</span>
+                {c.unreadCount > 0 && selectedGuestId !== c.userId && (
+                  <span className="flex items-center gap-1 bg-red-500 text-black text-xs px-2 py-1 rounded-full animate-pulse">
+                    <FaBell /> {c.unreadCount}
                   </span>
-
                 )}
-
               </div>
-
             </div>
-
           ))}
-
         </div>
-
       </div>
 
       {/* CHAT AREA */}
       <div className="flex-1 flex flex-col">
-
         <div className="p-4 border-b bg-white font-semibold">
-
-          {customers.find(
-            c => c.userId === selectedGuestId
-          )?.customerName || "Select Customer"}
-
+          {customers.find((c) => c.userId === selectedGuestId)?.customerName ||
+            "Select a customer"}
         </div>
 
-        {/* MESSAGES */}
-        <div className="flex-1 p-4 overflow-y-auto">
-
+        <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
           {messages.map((m) => (
-
             <div
               key={m._id}
               className={`flex mb-2 ${
-                m.sender === "admin"
-                  ? "justify-end"
-                  : "justify-start"
+                m.sender === "admin" ? "justify-end" : "justify-start"
               }`}
             >
-
-              <div className="bg-white px-3 py-2 rounded shadow max-w-xs">
-
-                {m.type === "image"
-                  ? (
-                    <img
-                      src={m.imageUrl}
-                      className="rounded max-w-[220px]"
-                    />
-                  )
-                  : (
-                    m.message
-                  )}
-
-                <div className="text-xs text-gray-400">
-
-                  {new Date(
-                    m.createdAt
-                  ).toLocaleString()}
-
+              <div
+                className={`px-3 py-2 rounded-lg max-w-xs shadow break-words ${
+                  m.sender === "admin" ? "bg-white-500 text-black" : "bg-white"
+                }`}
+              >
+                {m.type === "image" && m.imageUrl ? (
+                  <img
+                    src={m.imageUrl}
+                    alt=""
+                    className="rounded max-w-[220px]"
+                  />
+                ) : (
+                  m.message
+                )}
+                <div className="text-xs text-gray-400 mt-1">
+                  {new Date(m.createdAt).toLocaleString()}
                 </div>
-
               </div>
-
             </div>
-
           ))}
-
-          <div ref={chatEndRef} />
-
+          <div ref={chatEndRef}></div>
         </div>
 
         {/* INPUT */}
-        <div className="p-3 border-t bg-white flex gap-2">
+        <div className="p-3 border-t bg-white flex gap-2 items-center">
 
-          <label className="cursor-pointer">
-            <FaImage size={22}/>
+        <label className="cursor-pointer">
+            📷
             <input
-              hidden
-              type="file"
-              onChange={e =>
-                setImage(e.target.files[0])
-              }
+            hidden
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+                if (e.target.files?.length) {
+                setImage(e.target.files[0]);
+                }
+            }}
             />
-          </label>
+        </label>
 
-          <input
+        <input
             className="flex-1 border px-3 py-2 rounded"
             value={text}
-            onChange={e =>
-              setText(e.target.value)
-            }
-            onKeyDown={e =>
-              e.key === "Enter" && sendText()
-            }
-          />
+            onChange={(e) => setText(e.target.value)}
+        />
 
-          <button
+        <button
             onClick={sendText}
-            className="bg-blue-500 text-white p-3 rounded"
-          >
-            <FaPaperPlane/>
-          </button>
+            className="bg-accent-500 text-white px-3 py-2 rounded"
+        >
+            Send
+        </button>
 
-          {image &&
+        {image && (
             <button
-              onClick={sendImage}
-              className="bg-green-500 text-white px-3 rounded"
+            onClick={sendImage}
+            className="bg-accent-500 text-white px-3 py-2 rounded"
             >
-              Upload
+            Upload
             </button>
-          }
+        )}
 
         </div>
 
       </div>
-
     </div>
   );
 }
