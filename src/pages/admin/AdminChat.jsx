@@ -141,7 +141,7 @@ export default function AdminChat() {
               key={c.userId}
               onClick={() => setSelectedGuestId(c.userId)}
               className={`p-3 border-b cursor-pointer hover:bg-gray-100 ${
-                selectedGuestId === c.userId ? "bg-green-100" : ""
+                selectedGuestId === c.userId ? "bg-white-100" : ""
               }`}
             >
               <div className="flex justify-between items-center">
@@ -174,7 +174,7 @@ export default function AdminChat() {
             >
               <div
                 className={`px-3 py-2 rounded-lg max-w-xs shadow break-words ${
-                  m.sender === "admin" ? "bg-green-500 text-white" : "bg-white"
+                  m.sender === "admin" ? "bg-white-500 text-white" : "bg-white"
                 }`}
               >
                 {m.type === "image" && m.imageUrl ? (
@@ -215,7 +215,7 @@ export default function AdminChat() {
           <button
             onClick={sendText}
             disabled={loading}
-            className="bg-green-500 text-white p-3 rounded-full"
+            className="bg-white-500 text-white p-3 rounded-full"
           >
             <FaPaperPlane />
           </button>
