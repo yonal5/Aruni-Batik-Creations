@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import mediaUpload from "../utils/mediaUpload";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -8,7 +8,6 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 export default function ChatPage({ user }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const messagesEndRef = useRef(null);
 
   const [authError, setAuthError] = useState("");
   const cartFromState = location.state?.cart || [];
@@ -18,7 +17,6 @@ export default function ChatPage({ user }) {
   const [message, setMessage] = useState("");
   const [cart] = useState(cartFromState);
   const [sending, setSending] = useState(false);
-
   const [selectedImage, setSelectedImage] = useState(null);
 
   /* ================= GUEST ID ================= */
@@ -44,17 +42,14 @@ export default function ChatPage({ user }) {
   /* ================= AUTH CHECK ================= */
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (!token) {
       setAuthError("⚠️ You are not logged in. Redirecting...");
-
       const timer = setTimeout(() => {
         navigate("/login", {
           replace: true,
           state: { from: location.pathname },
         });
       }, 2000);
-
       return () => clearTimeout(timer);
     }
   }, [navigate, location.pathname]);
@@ -95,17 +90,11 @@ export default function ChatPage({ user }) {
     return () => clearInterval(interval);
   }, []);
 
-  /* ================= AUTO SCROLL ================= */
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   /* ================= SEND MESSAGE ================= */
   const sendMessage = async () => {
     if (!message.trim() || sending) return;
 
     setSending(true);
-
     try {
       await axios.post(`${BASE_URL}/api/chat`, {
         guestId,
@@ -129,10 +118,8 @@ export default function ChatPage({ user }) {
     if (!selectedImage || sending) return;
 
     setSending(true);
-
     try {
       const imageUrl = await mediaUpload(selectedImage);
-
       await axios.post(`${BASE_URL}/api/chat`, {
         guestId,
         customerName,
@@ -140,7 +127,6 @@ export default function ChatPage({ user }) {
         imageUrl,
         message: "",
       });
-
       setSelectedImage(null);
       loadMessages();
     } catch (err) {
@@ -201,7 +187,7 @@ export default function ChatPage({ user }) {
             <div
               className={`px-3 py-2 rounded-lg max-w-[75%] ${
                 msg.sender === "admin"
-                  ? "bg-gray-200 text-red-500 text-shadow-red-600 "
+                  ? "bg-gray-200 text-red-500 text-shadow-red-600"
                   : "bg-gray-200 text-black"
               }`}
             >
@@ -216,10 +202,16 @@ export default function ChatPage({ user }) {
 
               {/* TEXT */}
               {msg.type === "text" && msg.message && <div>{msg.message}</div>}
+
+              {/* DATE */}
+              <div className="text-xs text-gray-400 mt-1">
+                {msg.createdAt
+                  ? new Date(msg.createdAt).toLocaleString()
+                  : ""}
+              </div>
             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* INPUT AREA */}
