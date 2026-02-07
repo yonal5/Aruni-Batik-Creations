@@ -156,50 +156,29 @@ export default function AdminChat() {
                 >
                 <div className="flex items-center justify-between">
 
-     
+                    {/* LEFT SIDE (IMAGE + NAME) */}
                     <div className="flex items-center gap-3">
-                  
-                    {user.image ? (
+
+                    {/* PROFILE IMAGE */}
                     <img
                         src={
-                        user.image.startsWith("http")
-                            ? user.image
-                            : `${import.meta.env.VITE_API_URL}${user.image}`
+                        c.profileImage ||
+                        c.image ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            c.customerName || "User"
+                        )}&background=random`
                         }
-                        alt="User"
-                        className="h-9 w-9 rounded-full object-cover ring-2 ring-accent/50"
-                        onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.nextSibling.style.display = "flex";
-                        }}
+                        alt="user"
+                        className="w-10 h-10 rounded-full object-cover border"
                     />
-                    ) : null}
 
-
-                    <div
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white"
-                    style={{ display: user.image ? "none" : "flex" }}
-                    >
-                    {initials}
-                    </div>
-
-
-
-                    <div
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white"
-                    style={{ display: user.image ? "none" : "flex" }}
-                    >
-                    {initials}
-                    </div>
-
-
-
+                    {/* NAME */}
                     <div className="flex flex-col">
                         <span className="font-medium">
                         {c.customerName || c.userId}
                         </span>
 
-
+                        {/* Optional last message preview */}
                         {c.lastMessage && (
                         <span className="text-xs text-gray-500 truncate max-w-[150px]">
                             {c.lastMessage}
@@ -208,7 +187,7 @@ export default function AdminChat() {
                     </div>
                     </div>
 
-  
+                    {/* RIGHT SIDE (UNREAD BADGE) */}
                     {c.unreadCount > 0 && selectedGuestId !== c.userId && (
                     <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
                         <FaBell />
@@ -223,7 +202,7 @@ export default function AdminChat() {
 
       </div>
 
-      
+      {/* CHAT AREA */}
       <div className="flex-1 flex flex-col">
 
         <div className="p-4 border-b bg-white font-semibold">
@@ -231,7 +210,7 @@ export default function AdminChat() {
             "Select Customer"}
         </div>
 
-       
+        {/* MESSAGES */}
         <div className="flex-1 p-4 overflow-y-auto flex flex-col-reverse">
           {messages
             .slice()
@@ -257,9 +236,9 @@ export default function AdminChat() {
             ))}
         </div>
 
-
+        {/* INPUT */}
         <div className="p-3 border-t bg-white flex gap-2">
-
+          {/* PLUS ICON for image upload */}
           <label className="cursor-pointer text-2xl font-bold flex items-center justify-center w-10 h-10 bg-gray-200 rounded">
             +
             <input
