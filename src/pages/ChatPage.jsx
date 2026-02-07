@@ -1,252 +1,276 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import mediaUpload from "../utils/mediaUpload";
-import { useLocation, useNavigate } from "react-router-dom";
+import mediaUpload from "../../utils/mediaUpload";
+import { FaPaperPlane, FaBell } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-export default function ChatPage({ user }) {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [authError, setAuthError] = useState("");
-  const cartFromState = location.state?.cart || [];
-
+export default function AdminChat() {
+  const [customers, setCustomers] = useState([]);
+  const [selectedGuestId, setSelectedGuestId] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [customerName, setCustomerName] = useState("");
-  const [message, setMessage] = useState("");
-  const [cart] = useState(cartFromState);
-  const [sending, setSending] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [text, setText] = useState("");
+  const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  /* ================= GUEST ID ================= */
-  const [guestId] = useState(() => {
-    let id = localStorage.getItem("guestId");
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem("guestId", id);
-    }
-    return id;
-  });
+  const notificationSoundRef = useRef(null);
+  const lastMessageIdRef = useRef(null);
 
-  /* ================= USER NUMBER ================= */
-  const [userNumber] = useState(() => {
-    let num = localStorage.getItem("guestNumber");
-    if (!num) {
-      num = Math.floor(100000 + Math.random() * 900000);
-      localStorage.setItem("guestNumber", num);
-    }
-    return num;
-  });
-
-  /* ================= AUTH CHECK ================= */
+  // init sound ONCE
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setAuthError("⚠️ You are not logged in. Redirecting...");
-      const timer = setTimeout(() => {
-        navigate("/login", {
-          replace: true,
-          state: { from: location.pathname },
+    notificationSoundRef.current = new Audio("/notification.mp3");
+  }, []);
+
+  /* ================= LOAD CUSTOMERS ================= */
+  const loadCustomers = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/chat/customers`);
+
+      setCustomers((prev) => {
+        if (JSON.stringify(prev) === JSON.stringify(res.data)) {
+          return prev;
+        }
+
+        return res.data.sort((a, b) => {
+          if (b.unreadCount !== a.unreadCount)
+            return b.unreadCount - a.unreadCount;
+          return (a.customerName || "").localeCompare(b.customerName || "");
         });
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [navigate, location.pathname]);
+      });
 
-  /* ================= SET CUSTOMER NAME ================= */
-  useEffect(() => {
-    if (user?.name || user?.username) {
-      setCustomerName(user.name || user.username);
-    } else {
-      setCustomerName(`User-${userNumber}`);
+      if (!selectedGuestId && res.data.length > 0) {
+        setSelectedGuestId(res.data[0].userId);
+      }
+    } catch (err) {
+      console.error("Load customers failed:", err);
     }
-  }, [user, userNumber]);
+  };
 
   /* ================= LOAD MESSAGES ================= */
   const loadMessages = async () => {
+    if (!selectedGuestId) return;
+
     try {
-      const res = await axios.get(`${BASE_URL}/api/chat`, {
-        params: { guestId },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-        },
+      const res = await axios.get(`${BASE_URL}/api/chat/admin`, {
+        params: { guestId: selectedGuestId },
       });
 
-      const data = Array.isArray(res.data)
-        ? res.data
-        : res.data.messages || [];
+      const newMessages = res.data;
 
-      setMessages(data);
+      // notification check
+      if (newMessages.length > 0) {
+        const lastMsg = newMessages[newMessages.length - 1];
+
+        if (
+          lastMsg.sender === "customer" &&
+          lastMessageIdRef.current !== lastMsg._id
+        ) {
+          notificationSoundRef.current?.play().catch(() => {});
+          lastMessageIdRef.current = lastMsg._id;
+        }
+      }
+
+      setMessages(newMessages);
+
+      // REMOVE any scrollTop or scrollIntoView here!
     } catch (err) {
       console.error("Load messages failed:", err);
     }
   };
 
-  /* ================= AUTO LOAD ================= */
+  /* ================= POLLING ================= */
   useEffect(() => {
+    loadCustomers();
     loadMessages();
-    const interval = setInterval(loadMessages, 2500);
+
+    const interval = setInterval(() => {
+      loadCustomers();
+      loadMessages();
+    }, 2000);
+
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedGuestId]);
 
-  /* ================= SEND MESSAGE ================= */
-  const sendMessage = async () => {
-    if (!message.trim() || sending) return;
+  /* ================= SEND TEXT ================= */
+  const sendText = async () => {
+    if (!text.trim()) return;
 
-    setSending(true);
     try {
-      await axios.post(`${BASE_URL}/api/chat`, {
-        guestId,
-        customerName,
+      setLoading(true);
+
+      await axios.post(`${BASE_URL}/api/chat/admin/send`, {
+        guestId: selectedGuestId,
+        message: text,
         type: "text",
-        message: message.trim(),
       });
 
-      setMessage("");
+      setText("");
       loadMessages();
     } catch (err) {
       console.error(err);
-      alert("Send failed");
-    } finally {
-      setSending(false);
     }
+
+    setLoading(false);
   };
 
   /* ================= SEND IMAGE ================= */
   const sendImage = async () => {
-    if (!selectedImage || sending) return;
+    if (!image) return;
 
-    setSending(true);
     try {
-      const imageUrl = await mediaUpload(selectedImage);
-      await axios.post(`${BASE_URL}/api/chat`, {
-        guestId,
-        customerName,
-        type: "image",
+      setLoading(true);
+
+      const imageUrl = await mediaUpload(image);
+
+      await axios.post(`${BASE_URL}/api/chat/admin/send`, {
+        guestId: selectedGuestId,
         imageUrl,
-        message: "",
+        type: "image",
       });
-      setSelectedImage(null);
+
+      setImage(null);
       loadMessages();
     } catch (err) {
       console.error(err);
-      alert("Image send failed");
-    } finally {
-      setSending(false);
     }
+
+    setLoading(false);
   };
 
   /* ================= UI ================= */
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
-      {/* AUTH ERROR */}
-      {authError && (
-        <div className="bg-red-100 text-red-600 border px-4 py-2 rounded mb-3 w-full max-w-xl text-center">
-          {authError}
-        </div>
-      )}
+    <div className="flex h-screen bg-gray-100">
 
-      {/* TITLE */}
-      <h1 className="text-2xl font-bold mb-3 text-black">Chat With Us</h1>
+      {/* CUSTOMER LIST */}
+      <div className="w-80 bg-white border-r flex flex-col">
+        <div className="p-4 font-bold border-b">Customers</div>
 
-      {/* CUSTOMER NAME */}
-      <input
-        value={customerName}
-        readOnly
-        className="w-full max-w-xl border px-3 py-2 rounded mb-3 bg-white text-black"
-      />
+        <div className="flex-1 overflow-y-auto">
+            {customers.map((c) => (
+                <div
+                key={c.userId}
+                onClick={() => setSelectedGuestId(c.userId)}
+                className={`p-3 border-b cursor-pointer hover:bg-gray-100 ${
+                    selectedGuestId === c.userId ? "bg-gray-200" : ""
+                }`}
+                >
+                <div className="flex items-center justify-between">
 
-      {/* CART */}
-      {cart.length > 0 && (
-        <div className="bg-white border rounded p-3 mb-3 w-full max-w-xl">
-          <h2 className="font-semibold mb-2 text-black">Your Cart</h2>
-          {cart.map((item, index) => (
-            <div
-              key={index}
-              className="flex justify-between text-sm text-black"
-            >
-              <span>
-                {item.name} × {item.quantity}
-              </span>
-              <span>${item.price.toFixed(2)}</span>
+                    {/* LEFT SIDE (IMAGE + NAME) */}
+                    <div className="flex items-center gap-3">
+
+                    {/* PROFILE IMAGE */}
+                    <img
+                        src={
+                        c.profileImage ||
+                        c.image ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            c.customerName || "User"
+                        )}&background=random`
+                        }
+                        alt="user"
+                        className="w-10 h-10 rounded-full object-cover border"
+                    />
+
+                    {/* NAME */}
+                    <div className="flex flex-col">
+                        <span className="font-medium">
+                        {c.customerName || c.userId}
+                        </span>
+
+                        {/* Optional last message preview */}
+                        {c.lastMessage && (
+                        <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                            {c.lastMessage}
+                        </span>
+                        )}
+                    </div>
+                    </div>
+
+                    {/* RIGHT SIDE (UNREAD BADGE) */}
+                    {c.unreadCount > 0 && selectedGuestId !== c.userId && (
+                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
+                        <FaBell />
+                        {c.unreadCount}
+                    </span>
+                    )}
+
+                </div>
+                </div>
+            ))}
             </div>
-          ))}
+
+      </div>
+
+      {/* CHAT AREA */}
+      <div className="flex-1 flex flex-col">
+
+        <div className="p-4 border-b bg-white font-semibold">
+          {customers.find((c) => c.userId === selectedGuestId)?.customerName ||
+            "Select Customer"}
         </div>
-      )}
 
-      {/* CHAT BOX */}
-      <div className="bg-white border rounded p-3 w-full max-w-xl h-[60vh] overflow-y-auto">
-        {messages.map((msg) => (
-          <div
-            key={msg._id}
-            className={`my-2 flex ${
-              msg.sender === "admin" ? "justify-end" : "justify-start"
-            }`}
-          >
-            <div
-              className={`px-3 py-2 rounded-lg max-w-[75%] ${
-                msg.sender === "admin"
-                  ? "bg-gray-200 text-red-500 text-shadow-red-600"
-                  : "bg-gray-200 text-black"
-              }`}
-            >
-              {/* IMAGE */}
-              {msg.type === "image" && msg.imageUrl && (
-                <img
-                  src={msg.imageUrl}
-                  alt="chat"
-                  className="max-w-[220px] rounded"
-                />
-              )}
-
-              {/* TEXT */}
-              {msg.type === "text" && msg.message && <div>{msg.message}</div>}
-
-              {/* DATE */}
-              <div className="text-xs text-gray-400 mt-1">
-                {msg.createdAt
-                  ? new Date(msg.createdAt).toLocaleString()
-                  : ""}
+        {/* MESSAGES */}
+        <div className="flex-1 p-4 overflow-y-auto flex flex-col-reverse">
+          {messages
+            .slice()
+            .reverse()
+            .map((m) => (
+              <div
+                key={m._id}
+                className={`flex mb-2 ${
+                  m.sender === "admin" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div className="bg-white px-3 py-2 rounded shadow max-w-xs">
+                  {m.type === "image" ? (
+                    <img src={m.imageUrl} className="rounded max-w-[220px]" />
+                  ) : (
+                    m.message
+                  )}
+                  <div className="text-xs text-gray-400 mt-1">
+                    {m.createdAt ? new Date(m.createdAt).toLocaleString() : ""}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            ))}
+        </div>
 
-      {/* INPUT AREA */}
-      <div className="w-full max-w-xl mt-3 flex">
-        <input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Type message..."
-          className="flex-1 border px-3 py-2 rounded-l bg-white text-black"
-        />
-        <button
-          onClick={sendMessage}
-          disabled={sending}
-          className="bg-accent text-white px-5 py-2 rounded-r hover:opacity-80"
-        >
-          Send
-        </button>
-      </div>
+        {/* INPUT */}
+        <div className="p-3 border-t bg-white flex gap-2">
+          {/* PLUS ICON for image upload */}
+          <label className="cursor-pointer text-2xl font-bold flex items-center justify-center w-10 h-10 bg-gray-200 rounded">
+            +
+            <input
+              hidden
+              type="file"
+              onChange={(e) => setImage(e.target.files[0])}
+            />
+          </label>
 
-      {/* IMAGE SEND */}
-      <div className="w-full max-w-xl mt-2 flex">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setSelectedImage(e.target.files[0])}
-          className="flex-1"
-        />
-        <button
-          onClick={sendImage}
-          disabled={sending}
-          className="bg-accent text-white px-4 py-2 rounded ml-2"
-        >
-          Image
-        </button>
+          <input
+            className="flex-1 border px-3 py-2 rounded"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendText()}
+          />
+
+          <button
+            onClick={sendText}
+            className="bg-blue-500 text-white p-3 rounded"
+          >
+            <FaPaperPlane />
+          </button>
+
+          {image && (
+            <button
+              onClick={sendImage}
+              className="bg-green-500 text-white px-3 rounded"
+            >
+              Upload
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
