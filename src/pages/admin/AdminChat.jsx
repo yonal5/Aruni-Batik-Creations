@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import mediaUpload from "../../utils/mediaUpload";
-import { FaPaperPlane } from "react-icons/fa";
+import { FaPaperPlane, FaBell } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -13,7 +13,6 @@ export default function AdminChat() {
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const chatContainerRef = useRef(null);
   const notificationSoundRef = useRef(null);
   const lastMessageIdRef = useRef(null);
 
@@ -73,10 +72,7 @@ export default function AdminChat() {
 
       setMessages(newMessages);
 
-      // scroll to bottom **only on initial load**
-      if (chatContainerRef.current && newMessages.length > 0) {
-        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-      }
+      // REMOVE any scrollTop or scrollIntoView here!
     } catch (err) {
       console.error("Load messages failed:", err);
     }
@@ -181,10 +177,7 @@ export default function AdminChat() {
         </div>
 
         {/* MESSAGES */}
-        <div
-          ref={chatContainerRef}
-          className="flex-1 p-4 overflow-y-auto flex flex-col-reverse"
-        >
+        <div className="flex-1 p-4 overflow-y-auto flex flex-col-reverse">
           {messages
             .slice()
             .reverse()
