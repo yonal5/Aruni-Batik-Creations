@@ -201,8 +201,8 @@ export default function ChatPage({ user }) {
             <div
               className={`px-3 py-2 rounded-lg max-w-[75%] ${
                 msg.sender === "admin"
-                  ? "bg-gray-200 text-black"
-                  : "bg-gray-200 text-red-500 text-shadow-red-600"
+                  ? "bg-gray-200 text-red-500 text-shadow-red-600 "
+                  : "bg-gray-200 text-black"
               }`}
             >
               {/* IMAGE */}
