@@ -222,7 +222,7 @@ export default function AdminChat() {
           {image && (
             <button
               onClick={sendImage}
-              className="bg-blue-500 text-white px-3 py-2 rounded"
+              className="bg-blue text-white px-3 py-2 rounded"
             >
               Upload
             </button>
