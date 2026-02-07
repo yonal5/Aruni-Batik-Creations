@@ -21,18 +21,25 @@ export default function AdminChat() {
 
   // Load customer list
   const loadCustomers = async () => {
-    try {
-      const res = await axios.get(`${BASE_URL}/api/chat/customers`);
-      setCustomers(res.data);
+  try {
+    const res = await axios.get(`${BASE_URL}/api/chat/customers`);
+    
+    // Sort by unread count descending, then by name
+    const sorted = res.data.sort((a, b) => {
+      if (b.unreadCount !== a.unreadCount) return b.unreadCount - a.unreadCount;
+      return (a.customerName || "").localeCompare(b.customerName || "");
+    });
 
-      // auto-select first customer if none selected
-      if (!selectedGuestId && res.data.length > 0) {
-        setSelectedGuestId(res.data[0].userId);
-      }
-    } catch (err) {
-      console.error("Load customers failed:", err);
+    setCustomers(sorted);
+
+    if (!selectedGuestId && sorted.length > 0) {
+      setSelectedGuestId(sorted[0].userId);
     }
-  };
+  } catch (err) {
+    console.error("Load customers failed:", err);
+  }
+};
+
 
   // Load messages for selected customer
   const loadMessages = async () => {
