@@ -201,8 +201,8 @@ export default function ChatPage({ user }) {
             <div
               className={`px-3 py-2 rounded-lg max-w-[75%] ${
                 msg.sender === "admin"
-                  ? "bg-black text-white"
-                  : "bg-gray-200 text-black"
+                  ? "bg-white text-white"
+                  : "bg-gray-200 text-white"
               }`}
             >
               {/* IMAGE */}
@@ -234,7 +234,7 @@ export default function ChatPage({ user }) {
         <button
           onClick={sendMessage}
           disabled={sending}
-          className="bg-black text-white px-5 py-2 rounded-r hover:opacity-80"
+          className="bg-accent text-white px-5 py-2 rounded-r hover:opacity-80"
         >
           Send
         </button>
@@ -251,7 +251,7 @@ export default function ChatPage({ user }) {
         <button
           onClick={sendImage}
           disabled={sending}
-          className="bg-black text-white px-4 py-2 rounded ml-2"
+          className="bg-accent text-white px-4 py-2 rounded ml-2"
         >
           Image
         </button>
