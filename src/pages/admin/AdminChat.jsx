@@ -158,6 +158,7 @@ export default function AdminChat() {
 
      
                     <div className="flex items-center gap-3">
+                  
                     {user.image ? (
                     <img
                         src={
@@ -173,6 +174,15 @@ export default function AdminChat() {
                         }}
                     />
                     ) : null}
+
+
+                    <div
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white"
+                    style={{ display: user.image ? "none" : "flex" }}
+                    >
+                    {initials}
+                    </div>
+
 
 
                     <div
