@@ -147,7 +147,7 @@ export default function AdminChat() {
               <div className="flex justify-between items-center">
                 <span>{c.customerName || c.userId}</span>
                 {c.unreadCount > 0 && selectedGuestId !== c.userId && (
-                  <span className="flex items-center gap-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                  <span className="flex items-center gap-1 bg-red-500 text-black text-xs px-2 py-1 rounded-full animate-pulse">
                     <FaBell /> {c.unreadCount}
                   </span>
                 )}
@@ -174,7 +174,7 @@ export default function AdminChat() {
             >
               <div
                 className={`px-3 py-2 rounded-lg max-w-xs shadow break-words ${
-                  m.sender === "admin" ? "bg-white-500 text-white" : "bg-white"
+                  m.sender === "admin" ? "bg-white-500 text-black" : "bg-white"
                 }`}
               >
                 {m.type === "image" && m.imageUrl ? (
