@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import mediaUpload from "../utils/mediaUpload";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import { FaImage, FaPaperPlane } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -11,13 +11,13 @@ export default function ChatPage({ user }) {
   const navigate = useNavigate();
   const [authError, setAuthError] = useState("");
   const cartFromState = location.state?.cart || [];
-  const [selectedImage, setSelectedImage] = useState(null);
   const [messages, setMessages] = useState([]);
   const [customerName, setCustomerName] = useState("");
-  const [message, setMessage] = useState("");
-  const [cart] = useState(cartFromState);
+  const [text, setText] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
   const [sending, setSending] = useState(false);
-
+  const [cart] = useState(cartFromState);
+  const chatEndRef = useRef();
 
   const [guestId] = useState(() => {
     let id = localStorage.getItem("guestId");
@@ -28,7 +28,6 @@ export default function ChatPage({ user }) {
     return id;
   });
 
-
   const [userNumber] = useState(() => {
     let num = localStorage.getItem("guestNumber");
     if (!num) {
@@ -38,23 +37,22 @@ export default function ChatPage({ user }) {
     return num;
   });
 
+  // Notification sound when admin sends message
+  const notificationSound = new Audio("/notification.mp3");
+
+  // Auth check
   useEffect(() => {
     const token = localStorage.getItem("token");
-  
     if (!token) {
       setAuthError("⚠️ You are not logged in. Redirecting to login page...");
-  
       const timer = setTimeout(() => {
-        navigate("/login", {
-          replace: true,
-          state: { from: location.pathname },
-        });
+        navigate("/login", { replace: true, state: { from: location.pathname } });
       }, 2500);
-  
       return () => clearTimeout(timer);
     }
   }, [navigate, location.pathname]);
 
+  // Set customer name
   useEffect(() => {
     if (user?.name || user?.username) {
       setCustomerName(user.name || user.username);
@@ -63,18 +61,21 @@ export default function ChatPage({ user }) {
     }
   }, [user, userNumber]);
 
+  // Load messages
   const loadMessages = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/api/chat`, {
         params: { guestId },
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
       });
 
-      const data = Array.isArray(res.data)
-        ? res.data
-        : res.data.messages || [];
+      const data = Array.isArray(res.data) ? res.data : res.data.messages || [];
+
+      // Play notification if new admin message
+      const lastMsg = data[data.length - 1];
+      if (lastMsg?.sender === "admin" && !messages.find(m => m._id === lastMsg._id)) {
+        notificationSound.play().catch(() => {});
+      }
 
       setMessages(data);
     } catch (err) {
@@ -83,61 +84,58 @@ export default function ChatPage({ user }) {
     }
   };
 
-  const sendImage = async () => {
-    if (!selectedImage || sending) return;
+  useEffect(() => {
+    loadMessages();
+    const interval = setInterval(loadMessages, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
+  // Auto scroll to bottom
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Send text
+  const sendText = async () => {
+    if (!text.trim() || sending) return;
     setSending(true);
 
     try {
-
-      const imageUrl = await mediaUpload(selectedImage);
-
-
       await axios.post(`${BASE_URL}/api/chat`, {
         guestId,
         customerName,
-        type: "image",
-        imageUrl,
-        message: "Image uploaded", 
+        type: "text",
+        message: text.trim(),
       });
-
-      setSelectedImage(null);
+      setText("");
       loadMessages();
     } catch (err) {
-      console.error("Image upload failed:", err);
-      alert("Image upload failed");
+      console.error("Send text failed:", err);
+      alert("Failed to send message");
     } finally {
       setSending(false);
     }
   };
 
-
-  useEffect(() => {
-    loadMessages();
-    const interval = setInterval(loadMessages, 2500);
-    return () => clearInterval(interval);
-  }, []);
-
-  const sendMessage = async () => {
-    if (!message.trim() || sending) return;
-
+  // Send image
+  const sendImage = async () => {
+    if (!selectedImage || sending) return;
     setSending(true);
 
-    const prefixedMessage = `User-${userNumber}: ${message.trim()}`;
-
     try {
+      const imageUrl = await mediaUpload(selectedImage);
       await axios.post(`${BASE_URL}/api/chat`, {
-        customerName,
         guestId,
-        type: "text",
-        message: prefixedMessage,
+        customerName,
+        type: "image",
+        imageUrl,
+        message: "Image uploaded",
       });
-
-      setMessage("");
+      setSelectedImage(null);
       loadMessages();
     } catch (err) {
-      console.error("Send message failed:", err);
-      alert("Message failed to send. Please try again.");
+      console.error("Send image failed:", err);
+      alert("Failed to upload image");
     } finally {
       setSending(false);
     }
@@ -145,12 +143,12 @@ export default function ChatPage({ user }) {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
-    {authError && (
-      <div className="bg-red-100 text-red-700 border border-red-300 px-4 py-3 mb-3 rounded w-full max-w-xl text-center">
-        {authError}
-      </div>
-    )}
-    
+      {authError && (
+        <div className="bg-red-100 text-red-700 border border-red-300 px-4 py-3 mb-3 rounded w-full max-w-xl text-center">
+          {authError}
+        </div>
+      )}
+
       <h1 className="text-2xl font-bold mb-3">Chat With Us</h1>
 
       <input
@@ -159,64 +157,79 @@ export default function ChatPage({ user }) {
         readOnly
       />
 
-      {/* CART */}
+      {/* Cart */}
       {cart.length > 0 && (
         <div className="bg-white w-full max-w-xl p-3 mb-3 rounded border">
           <h2 className="font-semibold mb-2">Your Cart</h2>
           {cart.map((item, idx) => (
             <div key={idx} className="flex justify-between text-sm">
-              <span>
-                {item.name} × {item.quantity}
-              </span>
+              <span>{item.name} × {item.quantity}</span>
               <span>${item.price.toFixed(2)}</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* CHAT */}
+      {/* Chat Messages */}
       <div className="bg-white w-full max-w-xl p-3 h-[60vh] overflow-y-auto rounded border">
         {messages.map((msg) => (
           <div
             key={msg._id}
-            className={`my-2 text-sm ${
-              msg.sender === "admin" ? "text-red-600 text-right" : "text-left"
+            className={`my-2 flex ${
+              msg.sender === "admin" ? "justify-end" : "justify-start"
             }`}
           >
-            <div className="inline-block px-3 py-2 rounded bg-gray-200">
+            <div
+              className={`px-3 py-2 rounded-lg max-w-xs shadow break-words ${
+                msg.sender === "admin" ? "bg-green-500 text-white" : "bg-gray-200"
+              }`}
+            >
               {msg.type === "image" && msg.imageUrl ? (
-                <img
-                  src={msg.imageUrl}
-                  alt="chat"
-                  className="max-w-[220px] rounded"
-                />
+                <img src={msg.imageUrl} alt="" className="rounded max-w-[220px]" />
               ) : (
                 msg.message
               )}
+              <div className="text-xs text-gray-400 mt-1">
+                {new Date(msg.createdAt).toLocaleString()}
+              </div>
             </div>
           </div>
         ))}
+        <div ref={chatEndRef}></div>
       </div>
 
-      {/* INPUT */}
-      <div className="mt-3 flex w-full max-w-xl items-center">
+      {/* Input */}
+      <div className="mt-3 flex w-full max-w-xl items-center gap-2">
+        <label className="cursor-pointer">
+          <FaImage size={22} />
+          <input
+            type="file"
+            hidden
+            onChange={(e) => setSelectedImage(e.target.files[0])}
+          />
+        </label>
         <input
           className="flex-1 border px-4 py-2 rounded-l"
-          placeholder="Type your message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          placeholder="Type a message..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendText()}
         />
-
         <button
-          onClick={sendMessage}
+          onClick={sendText}
           disabled={sending}
           className="bg-blue-600 text-white px-5 py-2 rounded-r disabled:opacity-50"
         >
-          Send
+          <FaPaperPlane />
         </button>
-
-        
+        {selectedImage && (
+          <button
+            onClick={sendImage}
+            className="bg-blue-500 text-white px-3 py-2 rounded"
+          >
+            Upload
+          </button>
+        )}
       </div>
     </div>
   );
