@@ -17,7 +17,7 @@ import AdminUsersPage from "./admin/usersPage";
 import AdminDashboard from "./admin/adminDash";
 import { Loader } from "../components/loader";
 import { FaHome } from "react-icons/fa";
-import AdminOrdersPage from "./admin/adminOrdersPage"; // import your orders page
+import AdminOrdersPage from "../admin/adminOrdersPage"; // import your orders page
 
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -170,3 +170,4 @@ export default function AdminPage() {
     </div>
   );
 }
+
