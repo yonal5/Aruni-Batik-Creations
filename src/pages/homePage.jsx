@@ -17,7 +17,7 @@ import TermsPage from "./terms";
 import ReturnsPage from "./returns";
 import ReviewsPage from "./reviews";
 import SearchResultsPage from "./searchResults";
-
+import CheckoutPage from "./CheckoutPage";
   
 
 
@@ -58,7 +58,7 @@ export default function HomePage() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/cart" element={<CartPage />} />
-        <Route path="/checkout" element={<CartPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/chat" element={<ChatPage />} />
 
         
