@@ -1,72 +1,32 @@
-export function loadCart(){
-    let cartString = localStorage.getItem("cart") // "[item1, item2]"
+// src/utils/cart.js
 
-    if(cartString == null){
-        localStorage.setItem("cart", "[]")
-        cartString = "[]"
-    }
-
-    const cart = JSON.parse(cartString)
-
-    return cart
+// Load cart from localStorage
+export function loadCart() {
+  return JSON.parse(localStorage.getItem("cart") || "[]");
 }
 
-export function addToCart(product, quantity){
-    let cart = loadCart()
-
-    const existingItemIndex = cart.findIndex(
-        (item)=>{
-            return item.productID == product.productID
-        }
-    )
-
-    if(existingItemIndex == -1){
-        // item not in cart
-
-        if(quantity<1){
-            console.log("Quantity must be at least 1")
-            return
-        }
-
-        const cartItem = {
-            productID: product.productID,
-            name: product.name,
-            price: product.price,
-            labelledPrice: product.labelledPrice,
-            quantity: quantity,
-            image: product.images[0]
-        }
-        cart.push(cartItem)
-
-    }else{
-        
-        const existingItem = cart[existingItemIndex]
-
-        const newQuantity = existingItem.quantity + quantity
-
-        if(newQuantity<1){
-            cart = cart.filter(
-                (item)=>{
-                    return item.productID != product.productID
-                }
-            )
-        }else{
-            cart[existingItemIndex].quantity = newQuantity
-        }
-    }
-
-    localStorage.setItem("cart", JSON.stringify(cart))
+// Save cart to localStorage
+export function saveCart(cart) {
+  localStorage.setItem("cart", JSON.stringify(cart));
 }
-export function getTotal(){
 
-    const cart = loadCart()
-    
-    let total = 0
+// Add/update item in cart
+export function addToCart(item, qty) {
+  const cart = loadCart();
+  const index = cart.findIndex(i => i.productID === item.productID);
 
-    cart.forEach(
-        (item)=>{
-            total += item.price * item.quantity
-        }
-    )
-    return total
+  if (index !== -1) {
+    cart[index].quantity += qty;
+    if (cart[index].quantity <= 0) cart.splice(index, 1);
+  } else if (qty > 0) {
+    cart.push({ ...item, quantity: qty });
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+// Get total price
+export function getTotal() {
+  const cart = loadCart();
+  return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
