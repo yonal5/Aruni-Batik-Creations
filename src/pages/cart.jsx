@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CiCircleChevDown, CiCircleChevUp } from "react-icons/ci";
 import { BiTrash } from "react-icons/bi";
-
 import { addToCart, getTotal, loadCart } from "../utils/cart";
 import axios from "axios";
 
@@ -20,43 +19,12 @@ export default function CartPage({ user }) {
   // Remove item completely
   const removeItem = (item) => updateCart(item, -item.quantity);
 
-  // Send cart to admin chat
-  const sendCartToAdmin = async () => {
-    if (cart.length === 0) return alert("Cart is empty!");
-
-    // Determine user identity
-    let userNumber = user?.id || localStorage.getItem("guestNumber");
-    if (!userNumber) {
-      userNumber = Math.floor(Math.random() * 1000000);
-      localStorage.setItem("guestNumber", userNumber);
-    }
-
-    const guestId = localStorage.getItem("guestId") || crypto.randomUUID();
-    localStorage.setItem("guestId", guestId);
-
-    const customerName = user?.name || user?.username || `User-${userNumber}`;
-
-    const cartMessage = cart
-      .map(
-        (item) => `${item.name} x ${item.quantity} - USD ${item.price.toFixed(2)}`
-      )
-      .join("\n");
-
-    try {
-      await axios.post(`${BASE_URL}/api/chat`, {
-        guestId,
-        customerName,
-        message: `🛒 ${customerName} Checkout Cart Items:\n${cartMessage}`,
-      });
-
-      navigate("/chat");
-    } catch (err) {
-      console.error("Failed to send cart:", err);
-      alert("Failed to send cart to admin.");
-    }
+  // Proceed to checkout page
+  const proceedToCheckout = () => {
+    if (cart.length === 0) return alert("Your cart is empty!");
+    navigate("/checkout", { state: { cart, user } });
   };
 
-  // Refresh cart on mount (in case localStorage changed)
   useEffect(() => {
     setCart(loadCart());
   }, []);
@@ -64,6 +32,7 @@ export default function CartPage({ user }) {
   return (
     <div className="min-h-screen bg-primary/10 flex justify-center pt-10 px-3">
       <div className="w-full max-w-3xl flex flex-col gap-6">
+
         {/* Empty Cart */}
         {cart.length === 0 && (
           <div className="bg-white/80 backdrop-blur rounded-2xl p-10 text-center shadow-lg">
@@ -100,9 +69,7 @@ export default function CartPage({ user }) {
             <div className="flex-1 p-4 flex flex-col justify-between">
               <div>
                 <h1 className="font-semibold text-lg">{item.name}</h1>
-                <span className="text-sm text-secondary">
-                  ID: {item.productID}
-                </span>
+                <span className="text-sm text-secondary">ID: {item.productID}</span>
               </div>
 
               {/* Quantity */}
@@ -123,11 +90,11 @@ export default function CartPage({ user }) {
             <div className="w-full md:w-40 p-4 flex flex-col items-end justify-center">
               {item.labelledPrice > item.price && (
                 <span className="text-gray-400 line-through text-sm">
-                  USD {item.labelledPrice.toFixed(2)}
+                  LKR {item.labelledPrice.toFixed(2)}
                 </span>
               )}
               <span className="text-accent font-bold text-2xl">
-                USD {item.price.toFixed(2)}
+                LKR {item.price.toFixed(2)}
               </span>
             </div>
           </div>
@@ -137,11 +104,11 @@ export default function CartPage({ user }) {
         {cart.length > 0 && (
           <div className="sticky bottom-4 bg-white/95 backdrop-blur rounded-2xl shadow-xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
             <span className="text-2xl font-bold text-accent">
-              Total: USD {getTotal().toFixed(2)}
+              Total: LKR {getTotal().toFixed(2)}
             </span>
 
             <button
-              onClick={sendCartToAdmin}
+              onClick={proceedToCheckout}
               className="bg-accent text-white px-8 py-3 rounded-xl text-lg font-medium hover:bg-accent/80 transition"
             >
               🚀 Proceed to Checkout
