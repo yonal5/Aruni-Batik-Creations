@@ -58,6 +58,7 @@ export default function HomePage() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/checkout" element={<CartPage />} />
         <Route path="/chat" element={<ChatPage />} />
 
         
