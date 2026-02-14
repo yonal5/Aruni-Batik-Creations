@@ -53,33 +53,52 @@ export default function AdminPage() {
   }, [navigate]);
 
   const SidebarLinks = () => (
-    <>
-      <Link to="dashboard" onClick={() => setMobileMenuOpen(false)} className="sidebar-link">
+        <>
+      <Link
+        to="/admin/dashboard"
+        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
+        onClick={() => setMobileMenuOpen(false)}
+      >
         <FaChartLine />
         Dashboard
       </Link>
-
-      <Link to="chat" onClick={() => setMobileMenuOpen(false)} className="sidebar-link">
-        <MdShoppingCartCheckout />
+      <Link
+        to="/admin/chat"
+        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        <MdShoppingCartCheckout className="text-xl" />
         Chat
       </Link>
-
-      <Link to="products" onClick={() => setMobileMenuOpen(false)} className="sidebar-link">
+      <Link
+        to="/admin/products"
+        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
+        onClick={() => setMobileMenuOpen(false)}
+      >
         <BsBox2Heart />
         Products
       </Link>
-
-      <Link to="users" onClick={() => setMobileMenuOpen(false)} className="sidebar-link">
+      <Link
+        to="/admin/users"
+        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
+        onClick={() => setMobileMenuOpen(false)}
+      >
         <HiOutlineUsers />
         Users
       </Link>
-
-      <Link to="orders" onClick={() => setMobileMenuOpen(false)} className="sidebar-link">
-        <MdShoppingCartCheckout />
+      <Link
+        to="/admin/orders"
+        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        <MdShoppingCartCheckout className="text-xl" />
         Orders
       </Link>
-
-      <Link to="/" className="sidebar-link">
+      <Link
+        to="/"
+        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
+        onClick={() => setMobileMenuOpen(false)}
+      >
         <FaHome />
         Return to Shop
       </Link>
@@ -146,3 +165,4 @@ export default function AdminPage() {
     </div>
   );
 }
+
