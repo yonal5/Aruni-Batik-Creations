@@ -65,11 +65,13 @@ export default function RegisterPage() {
 									className="h-12 w-auto mb-4"
 								/>
 								<h2 className="text-2xl font-semibold text-white">
-									Welcome back to Aruni Batik Creations
+								Join Aruni Batik Creations
 								</h2>
 								<p className="text-primary/90 text-sm">
-									Log in to continue your beauty journey and checkout faster.
+								Create your account to explore handcrafted batik designs,
+								track your orders, and enjoy exclusive collections.
 								</p>
+
 							</div>
 
 							<div className="space-y-5">
@@ -175,7 +177,7 @@ export default function RegisterPage() {
 							</div>
 
 							<div className="mt-6 text-center text-sm text-primary/90">
-								Already have and acount?{" "}
+								Already have an account?{" "}
 								<Link
 									to="/login"
 									className="text-accent hover:underline underline-offset-4"
@@ -207,12 +209,15 @@ export default function RegisterPage() {
 					<div className="flex-1 flex items-center">
 						<div className="max-w-xl space-y-6">
 							<h1 className="text-5xl font-bold leading-tight text-white drop-shadow">
-								Best in. <span className="text-accent">ONE Place.</span>
+							Authentic Sri Lankan <span className="text-accent">Batik Fashion</span><br />
+							Starts Here.
 							</h1>
+
 							<p className="text-primary/90 text-lg">
-								Register to explore exclusive offers, track your orders, and save
-								your Gaming Race. best place to start you Journy.
+							Register to discover unique handcrafted batik clothing,
+							receive special offers, and easily track your orders.
 							</p>
+
 							<div className="h-1 w-28 bg-accent rounded-full" />
 						</div>
 					</div>
