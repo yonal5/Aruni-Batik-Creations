@@ -68,7 +68,7 @@ const logout = () => {
     <div className="relative flex items-center justify-end shrink-0">
       {/* Logout message */}
 {logoutMessage && (
-  <div className="fixed top-6 right-6 z-[9999] rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-lg animate-fade-in">
+  <div className="fixed top-6 right-6 z-9999 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-lg animate-fade-in">
     {logoutMessage}
   </div>
 )}
@@ -168,6 +168,10 @@ const logout = () => {
                 <MenuItem
                   onClick={() => (window.location.href = "/settings")}
                   label="Account Settings"
+                />
+                <MenuItem
+                  onClick={() => (window.location.href = "/orders")}
+                  label="Orders"
                 />
                 <MenuItem
                   onClick={() => (window.location.href = "/cart")}
