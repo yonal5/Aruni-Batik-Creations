@@ -17,7 +17,7 @@ import AdminUsersPage from "./admin/usersPage";
 import AdminDashboard from "./admin/adminDash";
 import { Loader } from "../components/loader";
 import { FaHome } from "react-icons/fa";
-import AdminOrdersPage from "./admin/AdminOrdersPage"; // import your orders page
+import AdminOrdersPage from "./admin/AdminOrdersPage";
 
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -158,7 +158,6 @@ export default function AdminPage() {
               <Route path="/chat" element={<AdminChat />} />
               <Route path="/add-product" element={<AddProductPage />} />
               <Route path="/update-product" element={<UpdateProductPage />} />
-              <Route path="/users" element={<AdminUsersPage />} />
               <Route path="/orders" element={<AdminOrdersPage />} />
             </Routes>
           ) : (
