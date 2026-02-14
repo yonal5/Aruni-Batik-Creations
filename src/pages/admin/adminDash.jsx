@@ -109,7 +109,7 @@ export default function AdminDashboard() {
 
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(`${BASE_URL}/api/orders/admin`, {
+      const res = await axios.get(`${BASE_URL}/api/orders`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -337,3 +337,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
