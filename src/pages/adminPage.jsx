@@ -1,13 +1,14 @@
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
-import { FaChartLine } from "react-icons/fa";
+import { FaChartLine, FaHome } from "react-icons/fa";
 import { MdShoppingCartCheckout } from "react-icons/md";
 import { BsBox2Heart } from "react-icons/bs";
 import { HiOutlineUsers } from "react-icons/hi";
 import { FiMenu, FiX } from "react-icons/fi";
-import UserData from "../components/userData.jsx";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+
+import UserData from "../components/userData.jsx";
 import AdminHomePage from "./admin/adminHome";
 import AdminProductPage from "./admin/adminProductPage";
 import AddProductPage from "./admin/adminAddNewProduct";
@@ -15,9 +16,8 @@ import UpdateProductPage from "./admin/adminUpdateProduct";
 import AdminChat from "./admin/AdminChat";
 import AdminUsersPage from "./admin/usersPage";
 import AdminDashboard from "./admin/adminDash";
+import AdminOrdersPage from "./admin/AdminOrdersPage";
 import { Loader } from "../components/loader";
-import { FaHome } from "react-icons/fa";
-import AdminOrdersPage from "./admin/AdminOrdersPage"; // import your orders page
 
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -26,6 +26,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+
     if (!token) {
       toast.error("Please login to access admin panel");
       navigate("/login");
@@ -38,66 +39,47 @@ export default function AdminPage() {
       })
       .then((res) => {
         if (res.data.role !== "admin") {
-          toast.error("You are not authorized to access admin panel");
+          toast.error("Not authorized");
           navigate("/");
           return;
         }
         setUserLoaded(true);
       })
       .catch(() => {
-        toast.error("Session expired. Please login again");
+        toast.error("Session expired");
         localStorage.removeItem("token");
-        window.location.href = "/login";
+        navigate("/login");
       });
-  }, []);
+  }, [navigate]);
 
   const SidebarLinks = () => (
     <>
-      <Link
-        to="/admin/dashboard"
-        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
-        onClick={() => setMobileMenuOpen(false)}
-      >
+      <Link to="dashboard" onClick={() => setMobileMenuOpen(false)} className="sidebar-link">
         <FaChartLine />
         Dashboard
       </Link>
-      <Link
-        to="/admin/chat"
-        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        <MdShoppingCartCheckout className="text-xl" />
+
+      <Link to="chat" onClick={() => setMobileMenuOpen(false)} className="sidebar-link">
+        <MdShoppingCartCheckout />
         Chat
       </Link>
-      <Link
-        to="/admin/products"
-        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
-        onClick={() => setMobileMenuOpen(false)}
-      >
+
+      <Link to="products" onClick={() => setMobileMenuOpen(false)} className="sidebar-link">
         <BsBox2Heart />
         Products
       </Link>
-      <Link
-        to="/admin/users"
-        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
-        onClick={() => setMobileMenuOpen(false)}
-      >
+
+      <Link to="users" onClick={() => setMobileMenuOpen(false)} className="sidebar-link">
         <HiOutlineUsers />
         Users
       </Link>
-      <Link
-        to="/admin/orders"
-        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        <MdShoppingCartCheckout className="text-xl" />
+
+      <Link to="orders" onClick={() => setMobileMenuOpen(false)} className="sidebar-link">
+        <MdShoppingCartCheckout />
         Orders
       </Link>
-      <Link
-        to="/"
-        className="w-[90%] flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent"
-        onClick={() => setMobileMenuOpen(false)}
-      >
+
+      <Link to="/" className="sidebar-link">
         <FaHome />
         Return to Shop
       </Link>
@@ -105,65 +87,60 @@ export default function AdminPage() {
   );
 
   return (
-    <div className="w-full h-full bg-primary flex flex-col lg:flex-row p-2 text-secondary">
+    <div className="w-full min-h-screen bg-primary flex flex-col lg:flex-row p-2 text-secondary">
+
       {/* Sidebar */}
       <div
-        className={`fixed lg:static top-0 left-0 z-50 w-[260px] lg:w-[300px] h-full bg-primary flex flex-col items-center gap-[20px] transition-transform duration-300 ${
+        className={`fixed lg:static top-0 left-0 z-50 w-[260px] lg:w-[300px] h-full bg-primary flex flex-col items-center gap-5 transition-transform duration-300 ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <div className="flex flex-row w-[90%] h-[70px] bg-accent items-center rounded-2xl mb-[20px]">
+        <div className="flex w-[90%] h-[70px] bg-accent items-center rounded-2xl mb-5">
           <img
             src="/logo.png"
-            alt="Aruni Bathik creations"
+            alt="Logo"
             className="h-[70px] ml-4 rounded-2xl"
           />
-          <span className="text-white text-xl ml-4">Admin panel</span>
-        
+          <span className="text-white text-xl ml-4">Admin Panel</span>
         </div>
 
-        {/* Close button for mobile */}
         <div className="lg:hidden w-full flex justify-end px-4">
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-white text-2xl"
-          >
+          <button onClick={() => setMobileMenuOpen(false)} className="text-white text-2xl">
             <FiX />
           </button>
         </div>
-         <UserData/>
-        <SidebarLinks />
 
-      
+        <UserData />
+        <SidebarLinks />
       </div>
 
-      {/* Mobile top bar */}
+      {/* Mobile Top Bar */}
       <div className="lg:hidden flex items-center justify-between bg-accent p-3 rounded-xl mb-2">
-        <button
-          onClick={() => setMobileMenuOpen(true)}
-          className="text-white text-2xl"
-        >
+        <button onClick={() => setMobileMenuOpen(true)} className="text-white text-2xl">
           <FiMenu />
         </button>
         <span className="text-white font-semibold">Admin Panel</span>
       </div>
-      {/* Main content */}
-      <div className="w-full lg:w-[calc(100%-300px)] h-full border-[4px] border-accent rounded-[20px] overflow-hidden">
-        <div className="h-full w-full max-w-full max-h-full overflow-y-scroll">
+
+      {/* Main Content */}
+      <div className="w-full lg:w-[calc(100%-300px)] border-4 border-accent rounded-2xl overflow-hidden">
+        <div className="h-full w-full overflow-y-auto p-4">
+
           {userLoaded ? (
             <Routes>
-              <Route path="/" element={<AdminHomePage />} />
-              <Route path="/dashboard" element={<AdminDashboard />} />
-              <Route path="/products" element={<AdminProductPage />} />
-              <Route path="/chat" element={<AdminChat />} />
-              <Route path="/add-product" element={<AddProductPage />} />
-              <Route path="/update-product" element={<UpdateProductPage />} />
-              <Route path="/users" element={<AdminUsersPage />} />
-              <Route path="/orders" element={<AdminOrdersPage />} />
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="products" element={<AdminProductPage />} />
+              <Route path="chat" element={<AdminChat />} />
+              <Route path="add-product" element={<AddProductPage />} />
+              <Route path="update-product" element={<UpdateProductPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="orders" element={<AdminOrdersPage />} />
             </Routes>
           ) : (
             <Loader />
           )}
+
         </div>
       </div>
     </div>
