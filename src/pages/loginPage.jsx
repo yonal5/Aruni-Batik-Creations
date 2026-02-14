@@ -68,13 +68,15 @@ export default function LoginPage() {
 					<div className="flex-1 flex items-center">
 						<div className="max-w-xl space-y-6">
 							<h1 className="text-5xl font-bold leading-tight text-white drop-shadow">
-								All your <span className="text-accent">Web Solutions</span><br />
-								in One Place.
+							Discover Authentic <span className="text-accent">Batik Creations</span><br />
+							Made with Tradition & Love.
 							</h1>
+
 							<p className="text-primary/90 text-lg">
-								Sign in to manage your websites, track your orders,
-								and access professional web solutions with ease.
+							Log in to explore our handcrafted batik collection, track your orders,
+							and experience the beauty of Sri Lankan batik artistry.
 							</p>
+
 							<div className="h-1 w-28 bg-accent rounded-full" />
 						</div>
 					</div>
@@ -91,11 +93,14 @@ export default function LoginPage() {
 							<div className="mb-8 flex flex-col items-center text-center">
 								<img src="/logo.png" alt="Aruni Batik CreationsLogo" className="w-[150px] h-[100px] mb-4" />
 								<h2 className="text-2xl font-semibold text-white">
-									Welcome back to Aruni Batik Creations
+								Welcome to Aruni Batik Creations
 								</h2>
+
 								<p className="text-primary/90 text-sm">
-									Log in to access your account and manage your website services.
+								Log in to view your orders, explore our latest batik designs,
+								and manage your account.
 								</p>
+
 							</div>
 
 							<div className="space-y-5">
