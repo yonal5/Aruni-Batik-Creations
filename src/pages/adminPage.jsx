@@ -151,7 +151,7 @@ export default function AdminPage() {
       <div className="w-full lg:w-[calc(100%-300px)] h-full border-[4px] border-accent rounded-[20px] overflow-hidden">
         <div className="h-full w-full max-w-full max-h-full overflow-y-scroll">
           {userLoaded ? (
-              <Routes>
+            <Routes>
               <Route path="/" element={<AdminHomePage />} />
               <Route path="/dashboard" element={<AdminDashboard />} />
               <Route path="/products" element={<AdminProductPage />} />
@@ -159,9 +159,8 @@ export default function AdminPage() {
               <Route path="/add-product" element={<AddProductPage />} />
               <Route path="/update-product" element={<UpdateProductPage />} />
               <Route path="/users" element={<AdminUsersPage />} />
-              <Route path="/orders" element={<AdminOrdersPage />} /> {/* <-- Added */}
+              <Route path="/orders" element={<AdminOrdersPage />} />
             </Routes>
-
           ) : (
             <Loader />
           )}
@@ -170,5 +169,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
-
