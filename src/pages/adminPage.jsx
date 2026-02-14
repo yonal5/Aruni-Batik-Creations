@@ -17,7 +17,7 @@ import AdminUsersPage from "./admin/usersPage";
 import AdminDashboard from "./admin/adminDash";
 import { Loader } from "../components/loader";
 import { FaHome } from "react-icons/fa";
-import AdminOrdersPage from "./admin/AdminOrdersPage";
+import AdminOrdersPage from "./admin/AdminOrdersPage"; // import your orders page
 
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -115,7 +115,7 @@ export default function AdminPage() {
         <div className="flex flex-row w-[90%] h-[70px] bg-accent items-center rounded-2xl mb-[20px]">
           <img
             src="/logo.png"
-            alt="SnapSite - Best Computer & Gaming Store"
+            alt="Aruni Bathik creations"
             className="h-[70px] ml-4 rounded-2xl"
           />
           <span className="text-white text-xl ml-4">Admin panel</span>
@@ -158,6 +158,7 @@ export default function AdminPage() {
               <Route path="/chat" element={<AdminChat />} />
               <Route path="/add-product" element={<AddProductPage />} />
               <Route path="/update-product" element={<UpdateProductPage />} />
+              <Route path="/users" element={<AdminUsersPage />} />
               <Route path="/orders" element={<AdminOrdersPage />} />
             </Routes>
           ) : (
