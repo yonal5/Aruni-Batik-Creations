@@ -1,7 +1,6 @@
-```jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaBell } from "react-icons/fa";
+import { FaBell, FaUsers, FaBoxOpen, FaShoppingCart, FaComments } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -13,6 +12,7 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
+  CartesianGrid,
 } from "recharts";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
@@ -21,7 +21,7 @@ export default function AdminDashboard() {
 
   const navigate = useNavigate();
 
-  /* ================= STATES ================= */
+  /* ================= STATE ================= */
 
   const [cards, setCards] = useState({
     users: 0,
@@ -35,47 +35,50 @@ export default function AdminDashboard() {
   const [error, setError] = useState("");
 
   const [unreadTotal, setUnreadTotal] = useState(0);
-  const [unreadUsers, setUnreadUsers] = useState([]);
 
   const [newOrdersCount, setNewOrdersCount] = useState(0);
-  const [newOrdersUsers, setNewOrdersUsers] = useState([]);
+
+
+  /* ================= TOKEN ================= */
+
+  const getToken = () => {
+    return localStorage.getItem("token");
+  };
 
 
   /* ================= FETCH ADMIN STATS ================= */
 
   const fetchStats = async () => {
-    try {
 
-      const token = localStorage.getItem("token");
+    try {
 
       const res = await axios.get(
         `${BASE_URL}/api/admin/stats`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${getToken()}`
+          }
         }
       );
 
-      const users = res.data?.users || 0;
-      const chats = res.data?.chats || 0;
-      const orders = res.data?.orders || 0;
-
       setCards(prev => ({
         ...prev,
-        users,
-        chats,
-        orders,
+        users: res.data?.users || 0,
+        chats: res.data?.chats || 0,
+        orders: res.data?.orders || 0,
       }));
 
       setError("");
 
-    } catch (err) {
+    }
+    catch (err) {
 
       console.error(err);
-      setError("Failed to load admin stats");
+
+      setError("Failed to load stats");
 
     }
+
   };
 
 
@@ -85,14 +88,12 @@ export default function AdminDashboard() {
 
     try {
 
-      const token = localStorage.getItem("token");
-
       const res = await axios.get(
         `${BASE_URL}/api/products`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${getToken()}`
+          }
         }
       );
 
@@ -100,12 +101,13 @@ export default function AdminDashboard() {
 
       setCards(prev => ({
         ...prev,
-        products: products.length,
+        products: products.length
       }));
 
-    } catch (err) {
+    }
+    catch (err) {
 
-      console.error("Products fetch error:", err);
+      console.error("Products error:", err);
 
     }
 
@@ -118,14 +120,12 @@ export default function AdminDashboard() {
 
     try {
 
-      const token = localStorage.getItem("token");
-
       const res = await axios.get(
         `${BASE_URL}/api/orders`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${getToken()}`
+          }
         }
       );
 
@@ -133,20 +133,15 @@ export default function AdminDashboard() {
 
       setCards(prev => ({
         ...prev,
-        orders: orders.length,
+        orders: orders.length
       }));
 
-      const pending = orders.filter(
-        order => order.status === "Pending"
-      );
+      const pending = orders.filter(o => o.status === "Pending");
 
       setNewOrdersCount(pending.length);
 
-      setNewOrdersUsers(
-        pending.slice(0, 2).map(order => order.customerName)
-      );
-
-    } catch (err) {
+    }
+    catch (err) {
 
       console.error(err);
 
@@ -157,38 +152,35 @@ export default function AdminDashboard() {
 
   /* ================= FETCH CHATS ================= */
 
-  const fetchUnreadChats = async () => {
+  const fetchChats = async () => {
 
     try {
-
-      const token = localStorage.getItem("token");
 
       const res = await axios.get(
         `${BASE_URL}/api/chat/customers`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${getToken()}`
+          }
         }
       );
 
       const customers = res.data || [];
 
-      const total = customers.reduce(
+      const unread = customers.reduce(
         (sum, c) => sum + (c.unreadCount || 0),
         0
       );
 
-      setUnreadTotal(total);
+      setUnreadTotal(unread);
 
-      setUnreadUsers(
-        customers
-          .filter(c => c.unreadCount > 0)
-          .slice(0, 2)
-          .map(c => c.userId)
-      );
+      setCards(prev => ({
+        ...prev,
+        chats: customers.length
+      }));
 
-    } catch (err) {
+    }
+    catch (err) {
 
       console.error(err);
 
@@ -203,29 +195,29 @@ export default function AdminDashboard() {
 
     setStats([
       { name: "Users", value: cards.users },
-      { name: "Chats", value: cards.chats },
-      { name: "Orders", value: cards.orders },
       { name: "Products", value: cards.products },
+      { name: "Orders", value: cards.orders },
+      { name: "Chats", value: cards.chats },
     ]);
 
   }, [cards]);
 
 
-  /* ================= AUTO LOAD ================= */
+  /* ================= LOAD DATA ================= */
 
   useEffect(() => {
 
     fetchStats();
     fetchProducts();
     fetchOrders();
-    fetchUnreadChats();
+    fetchChats();
 
     const interval = setInterval(() => {
 
       fetchStats();
       fetchProducts();
       fetchOrders();
-      fetchUnreadChats();
+      fetchChats();
 
     }, 5000);
 
@@ -234,6 +226,46 @@ export default function AdminDashboard() {
   }, []);
 
 
+  /* ================= CARD COMPONENT ================= */
+
+  const Card = ({ title, value, icon, color, onClick, notify }) => (
+
+    <div
+      onClick={onClick}
+      className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition cursor-pointer border-t-4"
+      style={{ borderColor: color }}
+    >
+
+      <div className="flex justify-between items-center">
+
+        <div>
+
+          <h3 className="text-gray-500 font-semibold">
+            {title}
+          </h3>
+
+          <h1 className="text-3xl font-bold mt-1">
+            {value}
+          </h1>
+
+        </div>
+
+        <div className="text-3xl relative">
+
+          {icon}
+
+          {notify > 0 && (
+            <FaBell className="text-red-500 absolute -top-3 -right-3 animate-pulse"/>
+          )}
+
+        </div>
+
+      </div>
+
+    </div>
+
+  );
+
 
   /* ================= UI ================= */
 
@@ -241,8 +273,13 @@ export default function AdminDashboard() {
 
     <div className="min-h-screen bg-gray-100 p-8">
 
+      <h1 className="text-2xl font-bold mb-6">
+        Admin Dashboard
+      </h1>
+
+
       {error && (
-        <div className="bg-red-100 text-red-700 p-3 mb-4 rounded">
+        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -252,83 +289,112 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
 
+        <Card
+          title="Users"
+          value={cards.users}
+          icon={<FaUsers className="text-blue-500"/>}
+          color="#3b82f6"
+          onClick={() => navigate("/admin/users")}
+        />
 
-        {/* USERS */}
+        <Card
+          title="Products"
+          value={cards.products}
+          icon={<FaBoxOpen className="text-purple-500"/>}
+          color="#8b5cf6"
+          onClick={() => navigate("/admin/products")}
+        />
 
-        <div className="bg-white p-6 rounded shadow border-t-4 border-blue-500">
+        <Card
+          title="Orders"
+          value={cards.orders}
+          icon={<FaShoppingCart className="text-green-500"/>}
+          color="#22c55e"
+          notify={newOrdersCount}
+          onClick={() => navigate("/admin/orders")}
+        />
 
-          <h3 className="font-semibold text-lg">Users</h3>
+        <Card
+          title="Chats"
+          value={cards.chats}
+          icon={<FaComments className="text-yellow-500"/>}
+          color="#eab308"
+          notify={unreadTotal}
+          onClick={() => navigate("/admin/chat")}
+        />
 
-          <h1 className="text-3xl font-bold">
-            {cards.users}
-          </h1>
-
-        </div>
+      </div>
 
 
+      {/* ================= CHARTS ================= */}
 
-        {/* CHATS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <div className="bg-white p-6 rounded shadow border-t-4 border-yellow-500">
+        {/* BAR */}
 
-          <h3 className="font-semibold text-lg flex items-center gap-2">
+        <div className="bg-white p-6 rounded-xl shadow">
 
-            Chats
-
-            {unreadTotal > 0 && (
-              <FaBell
-                className="text-yellow-500 cursor-pointer"
-                onClick={() => navigate("/admin/chat")}
-              />
-            )}
-
+          <h3 className="font-semibold mb-4">
+            System Overview
           </h3>
 
-          <h1 className="text-3xl font-bold">
-            {cards.chats}
-          </h1>
+          <ResponsiveContainer width="100%" height={250}>
 
-          {unreadTotal > 0 && (
-            <p className="text-sm text-gray-500 mt-2">
-              {unreadTotal} unread chats
-            </p>
-          )}
+            <BarChart data={stats}>
+
+              <CartesianGrid strokeDasharray="3 3"/>
+
+              <XAxis dataKey="name"/>
+
+              <YAxis/>
+
+              <Tooltip/>
+
+              <Bar dataKey="value"/>
+
+            </BarChart>
+
+          </ResponsiveContainer>
 
         </div>
 
 
+        {/* LINE */}
 
-        {/* ORDERS */}
+        <div className="bg-white p-6 rounded-xl shadow">
 
-        <div className="bg-white p-6 rounded shadow border-t-4 border-green-500">
-
-          <h3 className="font-semibold text-lg flex items-center gap-2">
-
-            Orders
-
-            {newOrdersCount > 0 && (
-              <FaBell
-                className="text-green-500 cursor-pointer"
-                onClick={() => navigate("/admin/orders")}
-              />
-            )}
-
+          <h3 className="font-semibold mb-4">
+            Growth Trend
           </h3>
 
-          <h1 className="text-3xl font-bold">
-            {cards.orders}
-          </h1>
+          <ResponsiveContainer width="100%" height={250}>
 
-          {newOrdersCount > 0 && (
-            <p className="text-sm text-gray-500 mt-2">
-              {newOrdersCount} pending orders
-            </p>
-          )}
+            <LineChart data={stats}>
+
+              <CartesianGrid strokeDasharray="3 3"/>
+
+              <XAxis dataKey="name"/>
+
+              <YAxis/>
+
+              <Tooltip/>
+
+              <Line
+                type="monotone"
+                dataKey="value"
+                strokeWidth={3}
+              />
+
+            </LineChart>
+
+          </ResponsiveContainer>
 
         </div>
 
+      </div>
 
+    </div>
 
-        {/* PRODUCTS */}
+  );
 
-```
+}
