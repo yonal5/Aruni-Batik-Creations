@@ -116,77 +116,90 @@ export default function AdminDashboard() {
 
   /* ================= FETCH ORDERS ================= */
 
-  const fetchOrders = async () => {
+ const fetchOrders = async () => {
+  try {
 
-    try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-      const res = await axios.get(
-        `${BASE_URL}/api/orders`,
-        {
-          headers: {
-            Authorization: `Bearer ${getToken()}`
-          }
+    const res = await axios.get(
+      `${BASE_URL}/api/orders`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      );
+      }
+    );
 
-      const orders = res.data || [];
+    const orders = Array.isArray(res.data) ? res.data : [];
 
-      setCards(prev => ({
-        ...prev,
-        orders: orders.length
-      }));
+    setCards(prev => ({
+      ...prev,
+      orders: orders.length
+    }));
 
-      const pending = orders.filter(o => o.status === "Pending");
+    // safer pending check
+    const pendingOrders = orders.filter(
+      order => order.status && order.status === "Pending"
+    );
 
-      setNewOrdersCount(pending.length);
+    setNewOrdersCount(pendingOrders.length);
 
-    }
-    catch (err) {
+  } catch (err) {
 
-      console.error(err);
+    console.error("Orders error:", err.response?.data || err.message);
 
-    }
+    setNewOrdersCount(0);
 
-  };
+  }
+};
+
 
 
   /* ================= FETCH CHATS ================= */
 
   const fetchChats = async () => {
+  try {
 
-    try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-      const res = await axios.get(
-        `${BASE_URL}/api/chat/customers`,
-        {
-          headers: {
-            Authorization: `Bearer ${getToken()}`
-          }
+    const res = await axios.get(
+      `${BASE_URL}/api/chat/customers`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      );
+      }
+    );
 
-      const customers = res.data || [];
+    const customers = Array.isArray(res.data) ? res.data : [];
 
-      const unread = customers.reduce(
-        (sum, c) => sum + (c.unreadCount || 0),
-        0
-      );
+    // total chats = total customers
+    setCards(prev => ({
+      ...prev,
+      chats: customers.length
+    }));
 
-      setUnreadTotal(unread);
+    // calculate unread safely
+    const unread = customers.reduce(
+      (sum, customer) =>
+        sum + (Number(customer.unreadCount) || 0),
+      0
+    );
 
-      setCards(prev => ({
-        ...prev,
-        chats: customers.length
-      }));
+    setUnreadTotal(unread);
 
-    }
-    catch (err) {
+  } catch (err) {
 
-      console.error(err);
+    console.error("Chat error:", err.response?.data || err.message);
 
-    }
+    setUnreadTotal(0);
 
-  };
+  }
+};
+
+
 
 
   /* ================= UPDATE CHART ================= */
