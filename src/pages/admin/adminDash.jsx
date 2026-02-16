@@ -1,340 +1,178 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaBell } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import {BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line,} from "recharts";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminDashboard() {
-  const navigate = useNavigate();
 
-  /* ---------------- STATES ---------------- */
+  const [activePage, setActivePage] = useState("dashboard");
+  const [orders, setOrders] = useState([]);
 
-  const [stats, setStats] = useState([]);
-  const [cards, setCards] = useState({
-    users: 0,
-    chats: 0,
-    orders: 0,
-  });
-
-  const [error, setError] = useState("");
-
-  // 🔔 chat notification
-  const [unreadTotal, setUnreadTotal] = useState(0);
-  const [unreadUsers, setUnreadUsers] = useState([]);
-
-  // 🛒 order notification
-  const [newOrdersCount, setNewOrdersCount] = useState(0);
-  const [newOrdersUsers, setNewOrdersUsers] = useState([]);
-
-  /* ---------------- FETCH ADMIN STATS ---------------- */
-
-  const fetchStats = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setError("Unauthorized. Please login again.");
-        return;
-      }
-
-      const res = await axios.get(`${BASE_URL}/api/admin/stats`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const users = res.data?.users ?? 0;
-      const chats = res.data?.chats ?? 0;
-      const orders = res.data?.orders ?? 0;
-
-      setCards({
-        users,
-        chats,
-        orders,
-      });
-
-      setStats([
-        { name: "Users", value: users },
-        { name: "Chats", value: chats },
-        { name: "Orders", value: orders },
-      ]);
-
-      setError("");
-
-    } catch (err) {
-      console.error("Admin stats error:", err);
-      setError("Failed to load admin statistics.");
-    }
-  };
-
-  /* ---------------- FETCH UNREAD CHATS ---------------- */
-
-  const fetchUnreadChats = async () => {
-    try {
-
-      const token = localStorage.getItem("token");
-
-      const res = await axios.get(`${BASE_URL}/api/chat/customers`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const customers = res.data || [];
-
-      const totalUnread = customers.reduce(
-        (sum, c) => sum + (c.unreadCount || 0),
-        0
-      );
-
-      const usersWithUnread = customers
-        .filter((c) => c.unreadCount > 0)
-        .slice(0, 2)
-        .map((c) => c.userId);
-
-      setUnreadTotal(totalUnread);
-      setUnreadUsers(usersWithUnread);
-
-    } catch (err) {
-      console.error("Unread chat fetch failed:", err);
-    }
-  };
-
-  /* ---------------- FETCH ORDERS ---------------- */
-
-  const fetchOrders = async () => {
-    try {
-
-      const token = localStorage.getItem("token");
-
-      const res = await axios.get(`${BASE_URL}/api/orders`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const orders = res.data || [];
-
-      // total orders
-      setCards(prev => ({
-        ...prev,
-        orders: orders.length
-      }));
-
-      // pending orders
-      const pendingOrders = orders.filter(
-        order => order.status === "Pending"
-      );
-
-      setNewOrdersCount(pendingOrders.length);
-
-      setNewOrdersUsers(
-        pendingOrders
-          .slice(0, 2)
-          .map(order => order.userId)
-      );
-
-    } catch (err) {
-      console.error("Orders fetch failed:", err);
-    }
-  };
-
-  /* ---------------- AUTO REFRESH ---------------- */
+  /* ================= LOAD ORDERS ================= */
 
   useEffect(() => {
+    if (activePage === "orders") {
+      loadOrders();
+    }
+  }, [activePage]);
 
-    fetchStats();
-    fetchUnreadChats();
-    fetchOrders();
+  const loadOrders = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/orders`);
+      setOrders(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load orders");
+    }
+  };
 
-    const interval = setInterval(() => {
+  const updateStatus = async (id, status) => {
+    try {
+      await axios.put(`${BASE_URL}/api/orders/${id}`, { status });
+      loadOrders();
+    } catch {
+      alert("Failed to update");
+    }
+  };
 
-      fetchStats();
-      fetchUnreadChats();
-      fetchOrders();
+  /* ================= PAGE RENDER ================= */
 
-    }, 5000);
+  const renderPage = () => {
 
-    return () => clearInterval(interval);
+    if (activePage === "orders") {
+      return (
+        <div>
+          <h1>Orders</h1>
 
-  }, []);
+          <table border="1" cellPadding="10" width="100%">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
 
-  /* ---------------- UI ---------------- */
+            <tbody>
+              {orders.map(order => (
+                <tr key={order._id}>
+
+                  <td>{order._id}</td>
+
+                  <td>
+                    {order.shippingAddress?.name || "N/A"}
+                  </td>
+
+                  <td>
+                    Rs {order.total}
+                  </td>
+
+                  <td>
+                    {order.status}
+                  </td>
+
+                  <td>
+
+                    <button onClick={() =>
+                      updateStatus(order._id, "Processing")
+                    }>
+                      Processing
+                    </button>
+
+                    <button onClick={() =>
+                      updateStatus(order._id, "Completed")
+                    }>
+                      Complete
+                    </button>
+
+                  </td>
+
+                </tr>
+              ))}
+            </tbody>
+
+          </table>
+        </div>
+      );
+    }
+
+    if (activePage === "products") {
+      return <h1>Products Page</h1>;
+    }
+
+    if (activePage === "users") {
+      return <h1>Users Page</h1>;
+    }
+
+    return (
+      <div>
+        <h1>Admin Dashboard</h1>
+        <p>Welcome Admin</p>
+      </div>
+    );
+  };
+
+  /* ================= UI ================= */
 
   return (
-    <div className="flex min-h-screen bg-gray-100 font-sans">
+    <div style={{ display: "flex", height: "100vh" }}>
 
-      <main className="flex-1 p-8">
+      {/* Sidebar */}
+      <div style={{
+        width: "250px",
+        background: "#111",
+        color: "#fff",
+        padding: "20px"
+      }}>
 
-        {/* ERROR */}
-        {error && (
-          <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
-            {error}
-          </div>
-        )}
+        <h2>Admin Panel</h2>
 
-        {/* CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <button style={btn}
+          onClick={() => setActivePage("dashboard")}>
+          Dashboard
+        </button>
 
-          {/* USERS */}
-          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-accent">
+        <button style={btn}
+          onClick={() => setActivePage("orders")}>
+          Orders
+        </button>
 
-            <h3 className="text-accent text-lg font-semibold">
-              Users
-            </h3>
+        <button style={btn}
+          onClick={() => setActivePage("products")}>
+          Products
+        </button>
 
-            <h1 className="text-3xl font-bold mt-2">
-              {cards.users}
-            </h1>
+        <button style={btn}
+          onClick={() => setActivePage("users")}>
+          Users
+        </button>
 
-          </div>
+      </div>
 
-
-          {/* CHATS */}
-          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-accent">
-
-            <h3 className="text-accent text-lg font-semibold flex items-center gap-2">
-
-              Chats
-
-              {unreadTotal > 0 && (
-                <button
-                  onClick={() => navigate("/admin/chat")}
-                  title="Open chats"
-                >
-                  <FaBell className="text-yellow-500 animate-pulse text-xl"/>
-                </button>
-              )}
-
-            </h3>
-
-            <h1 className="text-3xl font-bold mt-2">
-              {cards.chats}
-            </h1>
-
-            {unreadTotal > 0 && (
-              <div className="mt-3 text-sm text-gray-600">
-
-                <p>
-                  🔔 <b>{unreadTotal}</b> new chats
-                </p>
-
-                <p className="mt-1">
-                  👤 From:
-
-                  {unreadUsers.map(id => (
-                    <span
-                      key={id}
-                      className="ml-2 bg-gray-200 px-2 py-1 rounded text-xs"
-                    >
-                      {id}
-                    </span>
-                  ))}
-
-                </p>
-
-              </div>
-            )}
-
-          </div>
-
-
-          {/* ORDERS */}
-          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-accent">
-
-            <h3 className="text-accent text-lg font-semibold flex items-center gap-2">
-
-              Orders
-
-              {newOrdersCount > 0 && (
-                <button
-                  onClick={() => navigate("/admin/orders")}
-                  title="Open orders"
-                >
-                  <FaBell className="text-green-500 animate-pulse text-xl"/>
-                </button>
-              )}
-
-            </h3>
-
-            <h1 className="text-3xl font-bold mt-2">
-              {cards.orders}
-            </h1>
-
-            {newOrdersCount > 0 && (
-              <div className="mt-3 text-sm text-gray-600">
-
-                <p>
-                  🛒 <b>{newOrdersCount}</b> new orders
-                </p>
-
-                <p className="mt-1">
-                  👤 From:
-
-                  {newOrdersUsers.map(id => (
-                    <span
-                      key={id}
-                      className="ml-2 bg-gray-200 px-2 py-1 rounded text-xs"
-                    >
-                      {id}
-                    </span>
-                  ))}
-
-                </p>
-
-              </div>
-            )}
-
-          </div>
-
-        </div>
-
-
-        {/* CHARTS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-accent">
-
-            <h4 className="text-accent font-semibold mb-4">
-              Activity
-            </h4>
-
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={stats}>
-                <XAxis dataKey="name"/>
-                <YAxis/>
-                <Tooltip/>
-                <Bar dataKey="value"/>
-              </BarChart>
-            </ResponsiveContainer>
-
-          </div>
-
-
-          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-accent">
-
-            <h4 className="text-accent font-semibold mb-4">
-              Growth
-            </h4>
-
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={stats}>
-                <XAxis dataKey="name"/>
-                <YAxis/>
-                <Tooltip/>
-                <Line type="monotone" dataKey="value" strokeWidth={3}/>
-              </LineChart>
-            </ResponsiveContainer>
-
-          </div>
-
-        </div>
-
-      </main>
+      {/* Content */}
+      <div style={{
+        flex: 1,
+        padding: "20px",
+        overflowY: "auto"
+      }}>
+        {renderPage()}
+      </div>
 
     </div>
   );
 }
 
+/* ================= STYLE ================= */
+
+const btn = {
+  display: "block",
+  width: "100%",
+  padding: "10px",
+  margin: "10px 0",
+  background: "#333",
+  color: "#fff",
+  border: "none",
+  cursor: "pointer"
+};
