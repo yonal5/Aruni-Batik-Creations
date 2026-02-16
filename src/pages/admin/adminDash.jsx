@@ -1,178 +1,334 @@
-import { useState, useEffect } from "react";
+```jsx
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { FaBell } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+} from "recharts";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminDashboard() {
 
-  const [activePage, setActivePage] = useState("dashboard");
-  const [orders, setOrders] = useState([]);
+  const navigate = useNavigate();
 
-  /* ================= LOAD ORDERS ================= */
+  /* ================= STATES ================= */
+
+  const [cards, setCards] = useState({
+    users: 0,
+    chats: 0,
+    orders: 0,
+    products: 0,
+  });
+
+  const [stats, setStats] = useState([]);
+
+  const [error, setError] = useState("");
+
+  const [unreadTotal, setUnreadTotal] = useState(0);
+  const [unreadUsers, setUnreadUsers] = useState([]);
+
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
+  const [newOrdersUsers, setNewOrdersUsers] = useState([]);
+
+
+  /* ================= FETCH ADMIN STATS ================= */
+
+  const fetchStats = async () => {
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `${BASE_URL}/api/admin/stats`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const users = res.data?.users || 0;
+      const chats = res.data?.chats || 0;
+      const orders = res.data?.orders || 0;
+
+      setCards(prev => ({
+        ...prev,
+        users,
+        chats,
+        orders,
+      }));
+
+      setError("");
+
+    } catch (err) {
+
+      console.error(err);
+      setError("Failed to load admin stats");
+
+    }
+  };
+
+
+  /* ================= FETCH PRODUCTS ================= */
+
+  const fetchProducts = async () => {
+
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `${BASE_URL}/api/products`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const products = res.data || [];
+
+      setCards(prev => ({
+        ...prev,
+        products: products.length,
+      }));
+
+    } catch (err) {
+
+      console.error("Products fetch error:", err);
+
+    }
+
+  };
+
+
+  /* ================= FETCH ORDERS ================= */
+
+  const fetchOrders = async () => {
+
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `${BASE_URL}/api/orders`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const orders = res.data || [];
+
+      setCards(prev => ({
+        ...prev,
+        orders: orders.length,
+      }));
+
+      const pending = orders.filter(
+        order => order.status === "Pending"
+      );
+
+      setNewOrdersCount(pending.length);
+
+      setNewOrdersUsers(
+        pending.slice(0, 2).map(order => order.customerName)
+      );
+
+    } catch (err) {
+
+      console.error(err);
+
+    }
+
+  };
+
+
+  /* ================= FETCH CHATS ================= */
+
+  const fetchUnreadChats = async () => {
+
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `${BASE_URL}/api/chat/customers`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const customers = res.data || [];
+
+      const total = customers.reduce(
+        (sum, c) => sum + (c.unreadCount || 0),
+        0
+      );
+
+      setUnreadTotal(total);
+
+      setUnreadUsers(
+        customers
+          .filter(c => c.unreadCount > 0)
+          .slice(0, 2)
+          .map(c => c.userId)
+      );
+
+    } catch (err) {
+
+      console.error(err);
+
+    }
+
+  };
+
+
+  /* ================= UPDATE CHART ================= */
 
   useEffect(() => {
-    if (activePage === "orders") {
-      loadOrders();
-    }
-  }, [activePage]);
 
-  const loadOrders = async () => {
-    try {
-      const res = await axios.get(`${BASE_URL}/api/orders`);
-      setOrders(res.data);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load orders");
-    }
-  };
+    setStats([
+      { name: "Users", value: cards.users },
+      { name: "Chats", value: cards.chats },
+      { name: "Orders", value: cards.orders },
+      { name: "Products", value: cards.products },
+    ]);
 
-  const updateStatus = async (id, status) => {
-    try {
-      await axios.put(`${BASE_URL}/api/orders/${id}`, { status });
-      loadOrders();
-    } catch {
-      alert("Failed to update");
-    }
-  };
+  }, [cards]);
 
-  /* ================= PAGE RENDER ================= */
 
-  const renderPage = () => {
+  /* ================= AUTO LOAD ================= */
 
-    if (activePage === "orders") {
-      return (
-        <div>
-          <h1>Orders</h1>
+  useEffect(() => {
 
-          <table border="1" cellPadding="10" width="100%">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
+    fetchStats();
+    fetchProducts();
+    fetchOrders();
+    fetchUnreadChats();
 
-            <tbody>
-              {orders.map(order => (
-                <tr key={order._id}>
+    const interval = setInterval(() => {
 
-                  <td>{order._id}</td>
+      fetchStats();
+      fetchProducts();
+      fetchOrders();
+      fetchUnreadChats();
 
-                  <td>
-                    {order.shippingAddress?.name || "N/A"}
-                  </td>
+    }, 5000);
 
-                  <td>
-                    Rs {order.total}
-                  </td>
+    return () => clearInterval(interval);
 
-                  <td>
-                    {order.status}
-                  </td>
+  }, []);
 
-                  <td>
 
-                    <button onClick={() =>
-                      updateStatus(order._id, "Processing")
-                    }>
-                      Processing
-                    </button>
-
-                    <button onClick={() =>
-                      updateStatus(order._id, "Completed")
-                    }>
-                      Complete
-                    </button>
-
-                  </td>
-
-                </tr>
-              ))}
-            </tbody>
-
-          </table>
-        </div>
-      );
-    }
-
-    if (activePage === "products") {
-      return <h1>Products Page</h1>;
-    }
-
-    if (activePage === "users") {
-      return <h1>Users Page</h1>;
-    }
-
-    return (
-      <div>
-        <h1>Admin Dashboard</h1>
-        <p>Welcome Admin</p>
-      </div>
-    );
-  };
 
   /* ================= UI ================= */
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
 
-      {/* Sidebar */}
-      <div style={{
-        width: "250px",
-        background: "#111",
-        color: "#fff",
-        padding: "20px"
-      }}>
+    <div className="min-h-screen bg-gray-100 p-8">
 
-        <h2>Admin Panel</h2>
+      {error && (
+        <div className="bg-red-100 text-red-700 p-3 mb-4 rounded">
+          {error}
+        </div>
+      )}
 
-        <button style={btn}
-          onClick={() => setActivePage("dashboard")}>
-          Dashboard
-        </button>
 
-        <button style={btn}
-          onClick={() => setActivePage("orders")}>
-          Orders
-        </button>
+      {/* ================= CARDS ================= */}
 
-        <button style={btn}
-          onClick={() => setActivePage("products")}>
-          Products
-        </button>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
 
-        <button style={btn}
-          onClick={() => setActivePage("users")}>
-          Users
-        </button>
 
-      </div>
+        {/* USERS */}
 
-      {/* Content */}
-      <div style={{
-        flex: 1,
-        padding: "20px",
-        overflowY: "auto"
-      }}>
-        {renderPage()}
-      </div>
+        <div className="bg-white p-6 rounded shadow border-t-4 border-blue-500">
 
-    </div>
-  );
-}
+          <h3 className="font-semibold text-lg">Users</h3>
 
-/* ================= STYLE ================= */
+          <h1 className="text-3xl font-bold">
+            {cards.users}
+          </h1>
 
-const btn = {
-  display: "block",
-  width: "100%",
-  padding: "10px",
-  margin: "10px 0",
-  background: "#333",
-  color: "#fff",
-  border: "none",
-  cursor: "pointer"
-};
+        </div>
+
+
+
+        {/* CHATS */}
+
+        <div className="bg-white p-6 rounded shadow border-t-4 border-yellow-500">
+
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+
+            Chats
+
+            {unreadTotal > 0 && (
+              <FaBell
+                className="text-yellow-500 cursor-pointer"
+                onClick={() => navigate("/admin/chat")}
+              />
+            )}
+
+          </h3>
+
+          <h1 className="text-3xl font-bold">
+            {cards.chats}
+          </h1>
+
+          {unreadTotal > 0 && (
+            <p className="text-sm text-gray-500 mt-2">
+              {unreadTotal} unread chats
+            </p>
+          )}
+
+        </div>
+
+
+
+        {/* ORDERS */}
+
+        <div className="bg-white p-6 rounded shadow border-t-4 border-green-500">
+
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+
+            Orders
+
+            {newOrdersCount > 0 && (
+              <FaBell
+                className="text-green-500 cursor-pointer"
+                onClick={() => navigate("/admin/orders")}
+              />
+            )}
+
+          </h3>
+
+          <h1 className="text-3xl font-bold">
+            {cards.orders}
+          </h1>
+
+          {newOrdersCount > 0 && (
+            <p className="text-sm text-gray-500 mt-2">
+              {newOrdersCount} pending orders
+            </p>
+          )}
+
+        </div>
+
+
+
+        {/* PRODUCTS */}
+
+```
