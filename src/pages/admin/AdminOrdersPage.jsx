@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader } from "../components/loader";
-import Header, { TtitleBar } from "../components/header";
+import { Loader } from "../../components/loader";
+import Header, { TtitleBar } from "../../components/header";
 
 export default function AdminOrdersPage() {
 
@@ -254,3 +254,4 @@ export default function AdminOrdersPage() {
   );
 
 }
+
