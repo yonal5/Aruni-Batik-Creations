@@ -184,85 +184,9 @@ export default function AdminDashboard() {
           </div>
 
         </div>
-
-        {/* RECENT ORDERS TABLE */}
-        <div className="bg-white rounded-lg shadow border-t-4 border-accent">
-
-          <div className="p-4 border-b">
-
-            <h3 className="font-semibold text-accent">
-              Recent Orders
-            </h3>
-
-          </div>
-
-          <div className="overflow-x-auto">
-
-            <table className="w-full text-left">
-
-              <thead className="bg-secondary text-white">
-
-                <tr>
-                  <th className="px-4 py-3">Order ID</th>
-                  <th className="px-4 py-3">Customer</th>
-                  <th className="px-4 py-3">Total</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Date</th>
-                </tr>
-
-              </thead>
-
-              <tbody>
-
-                {orders.length === 0 && (
-                  <tr>
-                    <td colSpan="5" className="text-center py-6">
-                      No orders found
-                    </td>
-                  </tr>
-                )}
-
-                {orders.slice(0, 5).map(order => (
-
-                  <tr
-                    key={order.orderID}
-                    className="border-b hover:bg-gray-100"
-                  >
-
-                    <td className="px-4 py-3">
-                      {order.orderID}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {order.customerName}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      LKR {order.total.toFixed(2)}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {order.status}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {new Date(order.date).toLocaleDateString()}
-                    </td>
-
-                  </tr>
-
-                ))}
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-        </div>
-
       </main>
 
     </div>
   );
 }
+
