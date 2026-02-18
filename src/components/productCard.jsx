@@ -16,7 +16,7 @@ export default function ProductCard({ product }) {
       {/* PRODUCT IMAGE */}
       <Link to={"/overview/" + product.productID}>
         <img
-          className="w-full h-[clamp(250px,45vw,450px)] object-cover rounded-[30px]"
+          className="w-full h-[clamp(250px,40vw,450px)] object-cover rounded-[30px]"
           src={product.images[0]}
         />
       </Link>
