@@ -16,16 +16,15 @@ export function ProductPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // infinite-scroll / loop state
+  // Infinite scroll / loop state
   const BATCH_SIZE = 12;
-  const [visibleProducts, setVisibleProducts] = useState([]); // items shown in the grid
-  const nextIndexRef = useRef(0); // next slice start index in filtered array
+  const [visibleProducts, setVisibleProducts] = useState([]);
+  const nextIndexRef = useRef(0);
   const sentinelRef = useRef(null);
   const [loadingMore, setLoadingMore] = useState(false);
-
-  // guard ref to avoid concurrent loadMore calls
   const isLoadingRef = useRef(false);
 
+  // Fetch products
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -42,19 +41,18 @@ export function ProductPage() {
     load();
   }, []);
 
-  // compute filtered list based on search/category
+  // Filter products by search and category
   const filtered = useMemo(() => {
-    if (!searchQuery && !categoryQuery) return products;
     return products.filter((p) => {
-      const name = (p.title || p.name || "").toString().toLowerCase();
+      const name = (p.title || p.name || "").toLowerCase();
+      const prodCategory = (p.category || "").toLowerCase();
       const matchesName = !searchQuery || name.includes(searchQuery);
-      const prodCategory = (p.category || "").toString().toLowerCase();
-      const matchesCategory = !categoryQuery || prodCategory.includes(categoryQuery);
+      const matchesCategory = !categoryQuery || prodCategory === categoryQuery; // exact match
       return matchesName && matchesCategory;
     });
   }, [products, searchQuery, categoryQuery]);
 
-  // (re)initialize visibleProducts whenever filtered list changes
+  // Initialize visible products on filtered change
   useEffect(() => {
     isLoadingRef.current = false;
     nextIndexRef.current = 0;
@@ -62,16 +60,14 @@ export function ProductPage() {
       setVisibleProducts([]);
       return;
     }
-    const start = 0;
     const end = Math.min(filtered.length, BATCH_SIZE);
-    setVisibleProducts(filtered.slice(start, end));
+    setVisibleProducts(filtered.slice(0, end));
     nextIndexRef.current = end % filtered.length;
   }, [filtered]);
 
-  // load more items (looping) — show loader for 1.5s on each load
+  // Load more products (infinite scroll)
   const loadMore = useCallback(() => {
-    if (filtered.length === 0) return;
-    if (isLoadingRef.current) return;
+    if (filtered.length === 0 || isLoadingRef.current) return;
     isLoadingRef.current = true;
     setLoadingMore(true);
 
@@ -89,23 +85,20 @@ export function ProductPage() {
     }, 1500);
   }, [filtered]);
 
-  // IntersectionObserver to trigger loadMore when sentinel visible
+  // IntersectionObserver
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          loadMore();
-        }
-      });
-    }, {
-      root: null,
-      rootMargin: "200px",
-      threshold: 0.1,
-    });
-    obs.observe(sentinel);
-    return () => obs.disconnect();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) loadMore();
+        });
+      },
+      { root: null, rootMargin: "200px", threshold: 0.1 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
   }, [loadMore]);
 
   return (
@@ -127,7 +120,7 @@ export function ProductPage() {
                   <ProductCard key={`${item.productID || item.id}-${i}`} product={item} />
                 ))}
               </div>
-              {/* sentinel for intersection observer */}
+
               <div ref={sentinelRef} className="w-full flex justify-center items-center my-6">
                 {loadingMore ? (
                   <div className="text-sm text-gray-600">Loading more...</div>
