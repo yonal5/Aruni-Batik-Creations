@@ -1,241 +1,139 @@
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import mediaUpload from "../../utils/mediaUpload";
-import toast from "react-hot-toast";
 import axios from "axios";
+import { useEffect, useState, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { Loader } from "../components/loader";
+import ProductCard from "../components/productCard";
 
-export default function UpdateProductPage() {
-	const location = useLocation();
-	const navigate = useNavigate();
+export function ProductPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-	// === State Variables ===
-	const [productId, setProductId] = useState(location.state.productID);
-	const [name, setName] = useState(location.state.name);
-	const [altNames, setAltNames] = useState(location.state.altNames.join(","));
-	const [description, setDescription] = useState(location.state.description);
-	const [images, setImages] = useState([]);
-	const [price, setPrice] = useState(location.state.price);
-	const [labelledPrice, setLabelledPrice] = useState(location.state.labelledPrice);
-	const [category, setCategory] = useState(location.state.category);
-	const [stock, setStock] = useState(location.state.stock);
-	const [categories, setCategories] = useState([]); // 🔥 category list
+  const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const categoryQuery = (query.get("category") || "").toLowerCase();
 
-	// === Load Categories (from backend or fallback static) ===
-	useEffect(() => {
-		async function loadCategories() {
-			try {
-				const res = await axios.get(import.meta.env.VITE_API_URL + "/api/categories");
-				if (res.data && Array.isArray(res.data)) {
-					setCategories(res.data);
-				} else {
-					// fallback static list
-					setCategories(["one color saree", "two color saree", "three color saree", "four color saree", "five color saree", "six color saree", "seven color saree", "eight color saree"]);
-				}
-			} catch (err) {
-				console.warn("⚠️ Failed to load categories, using fallback");
-				setCategories(["one color saree", "two color saree", "three color saree", "four color saree", "five color saree", "six color saree", "seven color saree", "eight color saree"]);
-			}
-		}
-		loadCategories();
-	}, []);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-	// === Update Product Function ===
-	async function updateProduct() {
-		const token = localStorage.getItem("token");
-		if (!token) {
-			navigate("/login");
-			return;
-		}
+  // category state
+  const [selectedCategory, setSelectedCategory] = useState(categoryQuery || "all");
 
-		const uploadPromises = [];
-		for (let i = 0; i < images.length; i++) {
-			uploadPromises[i] = mediaUpload(images[i]);
-		}
+  // view more state
+  const PRODUCTS_PER_PAGE = 8;
+  const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE);
 
-		try {
-			let urls = await Promise.all(uploadPromises);
+  // load products
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const res = await axios.get(import.meta.env.VITE_API_URL + "/api/products");
+        setProducts(res.data || []);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load products");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProducts();
+  }, []);
 
-			if (urls.length === 0) {
-				urls = location.state.images;
-			}
+  // get categories from products dynamically
+  const categories = useMemo(() => {
+    const unique = new Set(products.map(p => (p.category || "").toLowerCase()));
+    return ["all", ...unique];
+  }, [products]);
 
-			const alternativeNames = altNames.split(",").map((x) => x.trim());
+  // filter products by category
+  const filteredProducts = useMemo(() => {
+    if (selectedCategory === "all") return products;
+    return products.filter(
+      p => (p.category || "").toLowerCase() === selectedCategory
+    );
+  }, [products, selectedCategory]);
 
-			const product = {
-				productID: productId,
-				name: name,
-				altNames: alternativeNames,
-				description: description,
-				images: urls,
-				price: price,
-				labelledPrice: labelledPrice,
-				category: category,
-				stock: stock,
-			};
+  // visible products
+  const visibleProducts = useMemo(() => {
+    return filteredProducts.slice(0, visibleCount);
+  }, [filteredProducts, visibleCount]);
 
-			await axios.put(import.meta.env.VITE_API_URL + "/api/products/" + productId, product, {
-				headers: {
-					Authorization: "Bearer " + token,
-				},
-			});
+  // view more function
+  function handleViewMore() {
+    setVisibleCount(prev => prev + PRODUCTS_PER_PAGE);
+  }
 
-			toast.success("✅ Product updated successfully!");
-			navigate("/admin/products");
-		} catch (err) {
-			console.error(err);
-			toast.error("❌ An error occurred while updating");
-		}
-	}
+  // change category
+  function changeCategory(cat) {
+    setSelectedCategory(cat);
+    setVisibleCount(PRODUCTS_PER_PAGE);
 
-	// === JSX ===
-	return (
-		<div className="min-h-screen w-full bg-primary/70 flex items-center justify-center p-6">
-			<div className="w-full max-w-3xl rounded-2xl border border-accent/30 bg-white shadow-xl">
-				{/* Header */}
-				<div className="flex items-center justify-between gap-3 border-b border-accent/20 px-6 py-5">
-					<div>
-						<h1 className="text-xl font-semibold text-secondary">Update Product</h1>
-						<p className="text-sm text-secondary/70">Edit product details and metadata.</p>
-					</div>
-					<div className="h-10 w-10 rounded-full bg-accent/15 ring-1 ring-accent/30" />
-				</div>
+    if (cat === "all") {
+      navigate("/products");
+    } else {
+      navigate(`/products?category=${cat}`);
+    }
+  }
 
-				{/* Form Grid */}
-				<div className="px-6 py-6">
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-						{/* Product ID */}
-						<label className="flex flex-col gap-1.5">
-							<span className="text-sm font-medium text-secondary">Product ID</span>
-							<input
-								disabled
-								className="h-11 rounded-xl border border-secondary/20 bg-white px-3 text-secondary placeholder:text-secondary/40 outline-none focus:border-accent focus:ring-4 focus:ring-accent/20 transition"
-								value={productId}
-								onChange={(e) => setProductId(e.target.value)}
-								placeholder="e.g., DS-CR-001"
-							/>
-                        </label>
+  if (loading) return <Loader />;
 
-						{/* Name */}
-						<label className="flex flex-col gap-1.5">
-							<span className="text-sm font-medium text-secondary">Name</span>
-							<input
-								className="h-11 rounded-xl border border-secondary/20 bg-white px-3 text-secondary placeholder:text-secondary/40 outline-none focus:border-accent focus:ring-4 focus:ring-accent/20 transition"
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								placeholder="e.g., Diamond Shine Night Cream"
-							/>
-						</label>
+  return (
+    <div className="w-full min-h-screen bg-orange-50">
 
-						{/* Alt Names */}
-						<label className="flex flex-col gap-1.5 md:col-span-2">
-							<span className="text-sm font-medium text-secondary">Alternative Names</span>
-							<input
-								className="h-11 rounded-xl border border-secondary/20 bg-white px-3 text-secondary placeholder:text-secondary/40 outline-none focus:border-accent focus:ring-4 focus:ring-accent/20 transition"
-								value={altNames}
-								onChange={(e) => setAltNames(e.target.value)}
-								placeholder="Comma-separated; e.g., night cream, hydrating cream"
-							/>
-						</label>
+      {/* CATEGORY BAR */}
+      <div className="w-full bg-white shadow-sm p-4 flex flex-wrap gap-3 justify-center">
 
-						{/* Description */}
-						<label className="flex flex-col gap-1.5 md:col-span-2">
-							<span className="text-sm font-medium text-secondary">Description</span>
-							<textarea
-								className="min-h-[120px] rounded-xl border border-secondary/20 bg-white px-3 py-2 text-secondary placeholder:text-secondary/40 outline-none focus:border-accent focus:ring-4 focus:ring-accent/20 transition"
-								value={description}
-								onChange={(e) => setDescription(e.target.value)}
-								placeholder="Brief product overview, benefits, and usage."
-							/>
-						</label>
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => changeCategory(cat)}
+            className={`px-4 py-2 rounded-full border transition
+              ${selectedCategory === cat
+                ? "bg-orange-500 text-white border-orange-500"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-orange-100"
+              }`}
+          >
+            {cat === "all"
+              ? "All"
+              : cat.charAt(0).toUpperCase() + cat.slice(1)}
+          </button>
+        ))}
 
-						{/* Images */}
-						<label className="flex flex-col gap-1.5 md:col-span-2">
-							<span className="text-sm font-medium text-secondary">Images</span>
-							<input
-								type="file"
-								onChange={(e) => setImages(e.target.files)}
-								multiple
-								className="block w-full cursor-pointer rounded-xl border border-secondary/20 bg-white file:mr-4 file:rounded-lg file:border-0 file:bg-accent/10 file:px-4 file:py-2 file:text-secondary file:font-medium hover:file:bg-accent/20 transition"
-							/>
-							<span className="text-xs text-secondary/60">PNG/JPG recommended. Multiple files supported.</span>
-						</label>
+      </div>
 
-						{/* Price */}
-						<label className="flex flex-col gap-1.5">
-							<span className="text-sm font-medium text-secondary">Price</span>
-							<input
-								type="number"
-								value={price}
-								onChange={(e) => setPrice(e.target.value)}
-								placeholder="0.00"
-								className="h-11 rounded-xl border border-secondary/20 bg-white px-3 text-secondary placeholder:text-secondary/40 outline-none focus:border-accent focus:ring-4 focus:ring-accent/20 transition"
-							/>
-						</label>
 
-						{/* Labelled Price */}
-						<label className="flex flex-col gap-1.5">
-							<span className="text-sm font-medium text-secondary">Labelled Price</span>
-							<input
-								type="number"
-								value={labelledPrice}
-								onChange={(e) => setLabelledPrice(e.target.value)}
-								placeholder="MRP / Sticker Price"
-								className="h-11 rounded-xl border border-secondary/20 bg-white px-3 text-secondary placeholder:text-secondary/40 outline-none focus:border-accent focus:ring-4 focus:ring-accent/20 transition"
-							/>
-						</label>
+      {/* PRODUCT GRID */}
+      <div className="w-full flex flex-wrap justify-center gap-6 p-6 bg-white">
 
-						{/* Category */}
-						<label className="flex flex-col gap-1.5">
-							<span className="text-sm font-medium text-secondary">Category</span>
-							<select
-								value={category}
-								onChange={(e) => setCategory(e.target.value)}
-								className="h-11 rounded-xl border border-secondary/20 bg-white px-3 text-secondary outline-none focus:border-accent focus:ring-4 focus:ring-accent/20 transition"
-							>
-								<option value="">Select a Category</option>
-								{categories.map((cat, index) => (
-									<option key={index} value={cat.name || cat}>
-										{cat.name || cat}
-									</option>
-								))}
-							</select>
-						</label>
+        {visibleProducts.length === 0 && (
+          <div className="text-gray-500 text-lg">
+            No products found
+          </div>
+        )}
 
-						{/* Stock */}
-						<label className="flex flex-col gap-1.5">
-							<span className="text-sm font-medium text-secondary">Stock</span>
-							<input
-								type="number"
-								value={stock}
-								onChange={(e) => setStock(e.target.value)}
-								placeholder="0"
-								className="h-11 rounded-xl border border-secondary/20 bg-white px-3 text-secondary placeholder:text-secondary/40 outline-none focus:border-accent focus:ring-4 focus:ring-accent/20 transition"
-							/>
-						</label>
-					</div>
-				</div>
+        {visibleProducts.map(product => (
+          <ProductCard
+            key={product.productID}
+            product={product}
+          />
+        ))}
 
-				{/* Footer */}
-				<div className="flex items-center justify-between gap-3 border-t border-accent/20 px-6 py-4">
-					<span className="text-xs text-secondary/60">
-						Tip: Maintain consistent naming for SKU discoverability.
-					</span>
-					<div className="flex items-center gap-2">
-						<button
-							onClick={() => navigate("/admin/products")}
-							className="rounded-full bg-[#FF000050] px-3 h-[40px] w-[100px] py-1 text-md flex justify-center items-center font-medium text-secondary ring-1 ring-accent/30 hover:border-red-500 hover:border-[2px]"
-						>
-							Cancel
-						</button>
-						<button
-							onClick={updateProduct}
-							className="rounded-full bg-accent/15 px-3 h-[40px] w-[100px] py-1 text-md flex justify-center items-center font-medium text-secondary ring-1 ring-accent/30 hover:border-accent hover:border-[2px]"
-						>
-							Submit
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+      </div>
+
+
+      {/* VIEW MORE BUTTON */}
+      {visibleCount < filteredProducts.length && (
+        <div className="w-full flex justify-center pb-10">
+
+          <button
+            onClick={handleViewMore}
+            className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+          >
+            View More
+          </button>
+
+        </div>
+      )}
+
+    </div>
+  );
 }
