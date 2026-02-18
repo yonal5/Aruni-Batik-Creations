@@ -140,9 +140,7 @@ export function ProductPage() {
 
   return (
 
-    <div className="w-full min-h-[calc(100vh-100px)] bg-orange-100">
-
-      <Header />
+    <div className="w-full min-h-[calc(100vh-100px)] bg-orange-100">  
 
       {
 
