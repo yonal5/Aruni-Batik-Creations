@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Loader } from "../components/loader";
 import ProductCard from "../components/productCard";
+import React from "react";
 
 export function ProductPage() {
   const location = useLocation();
@@ -17,7 +18,7 @@ export function ProductPage() {
   const PRODUCTS_PER_CATEGORY = 10;
   const [visibleCount, setVisibleCount] = useState({});
 
-  // LOAD PRODUCTS
+  // Load products
   useEffect(() => {
     async function load() {
       try {
@@ -25,7 +26,6 @@ export function ProductPage() {
         const data = response.data || [];
         setProducts(data);
 
-        // initialize visible counts
         const counts = {};
         data.forEach((p) => {
           const cat = (p.category || "other").toLowerCase();
@@ -42,7 +42,7 @@ export function ProductPage() {
     load();
   }, []);
 
-  // FILTER PRODUCTS
+  // Filter products
   const filtered = useMemo(() => {
     return products.filter((p) => {
       const name = (p.title || p.name || "").toLowerCase();
@@ -53,7 +53,7 @@ export function ProductPage() {
     });
   }, [products, searchQuery, categoryQuery]);
 
-  // GROUP BY CATEGORY
+  // Group by category
   const groupedProducts = useMemo(() => {
     const grouped = {};
     filtered.forEach((product) => {
@@ -64,7 +64,7 @@ export function ProductPage() {
     return grouped;
   }, [filtered]);
 
-  // LOAD MORE PER CATEGORY
+  // Load more per category
   function loadMore(category) {
     setVisibleCount((prev) => ({
       ...prev,
@@ -91,13 +91,20 @@ export function ProductPage() {
                   <div className="text-xl font-semibold mb-4 capitalize">{category}</div>
 
                   {/* PRODUCTS GRID */}
-                  <div className="grid gap-4 justify-center
-                                  grid-cols-1 
-                                  sm:grid-cols-3 
-                                  md:grid-cols-3 
-                                  lg:grid-cols-4">
+                  <div
+                    className="
+                      grid gap-4
+                      grid-cols-1
+                      sm:grid-cols-3
+                      md:grid-cols-3
+                      lg:grid-cols-4
+                      justify-items-center
+                    "
+                  >
                     {categoryProducts.slice(0, visible).map((item, i) => (
-                      <ProductCard key={`${item.productID}-${i}`} product={item} />
+                      <div key={`${item.productID}-${i}`} className="w-full max-w-[350px]">
+                        <ProductCard product={item} />
+                      </div>
                     ))}
                   </div>
 
