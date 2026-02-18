@@ -141,9 +141,6 @@ export function ProductPage() {
   return (
 
     <div className="w-full min-h-[calc(100vh-100px)] bg-orange-100">
-
-      <Header />
-
       {
 
         loading ? (
@@ -152,7 +149,7 @@ export function ProductPage() {
 
         ) : (
 
-          <div className="w-full h-full flex flex-col loop bg-orange-100 p-4">
+          <div className="w-full h-full flex flex-col loop bg-white">
 
             {
 
