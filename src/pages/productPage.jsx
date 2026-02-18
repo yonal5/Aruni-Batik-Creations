@@ -11,7 +11,11 @@ export function ProductPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const query = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+
   const searchQuery = (query.get("search") || "").trim().toLowerCase();
   const categoryQuery = (query.get("category") || "").trim().toLowerCase();
 
@@ -27,7 +31,9 @@ export function ProductPage() {
   useEffect(() => {
     async function load() {
       try {
-        const response = await axios.get(import.meta.env.VITE_API_URL + "/api/products");
+        const response = await axios.get(
+          import.meta.env.VITE_API_URL + "/api/products"
+        );
         const data = response.data || [];
         setProducts(data);
 
@@ -35,7 +41,9 @@ export function ProductPage() {
         const counts = {};
         data.forEach((p) => {
           const cat = (p.category || "other").toLowerCase();
-          if (!counts[cat]) counts[cat] = PRODUCTS_PER_CATEGORY;
+          if (!counts[cat]) {
+            counts[cat] = PRODUCTS_PER_CATEGORY;
+          }
         });
         setVisibleCount(counts);
       } catch (error) {
@@ -70,10 +78,9 @@ export function ProductPage() {
     return grouped;
   }, [filtered]);
 
-  // LOAD MORE PER CATEGORY
-  function loadMore(category) {
-    // Navigate to full category page instead of loading more inline
-    navigate(`/products?category=${category}`);
+  // Navigate to full category page
+  function viewMore(category) {
+    navigate(`/products/all?category=${category}`);
   }
 
   return (
@@ -81,7 +88,7 @@ export function ProductPage() {
       {loading ? (
         <Loader />
       ) : (
-        <div className="w-full h-full flex flex-col loop bg-white">
+        <div className="w-full h-full flex flex-col gap-6 p-4">
           {Object.keys(groupedProducts).length === 0 ? (
             <div className="p-8 text-center">No products found.</div>
           ) : (
@@ -90,25 +97,34 @@ export function ProductPage() {
               const visible = visibleCount[category] || PRODUCTS_PER_CATEGORY;
 
               return (
-                <div key={category} className="w-full bg-white rounded-xl mb-6 p-4">
+                <div
+                  key={category}
+                  className="w-full bg-white rounded-xl p-4 shadow"
+                >
                   {/* CATEGORY TITLE */}
-                  <div className="text-xl font-semibold mb-4 capitalize">{category}</div>
+                  <div className="text-xl font-semibold mb-4 capitalize">
+                    {category}
+                  </div>
 
                   {/* PRODUCTS GRID */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 justify-items-center">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 justify-items-center">
                     {categoryProducts.slice(0, visible).map((item, i) => (
-                      <ProductCard key={`${item.productID}-${i}`} product={item} className="w-full" />
+                      <ProductCard
+                        key={`${item.productID}-${i}`}
+                        product={item}
+                        className="w-full"
+                      />
                     ))}
                   </div>
 
-                  {/* LOAD MORE BUTTON */}
+                  {/* LOAD MORE / VIEW MORE BUTTON */}
                   {visible < categoryProducts.length && (
                     <div className="w-full flex justify-center mt-4">
                       <button
-                        onClick={() => loadMore(category)}
+                        onClick={() => viewMore(category)}
                         className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
                       >
-                        View All
+                        View More
                       </button>
                     </div>
                   )}
