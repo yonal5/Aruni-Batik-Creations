@@ -1,8 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import Header, { TtitleBar } from "../../components/header";
 import { Loader } from "../../components/loader";
 import OrderModal from "../../components/orderInfoModal";
 
@@ -98,10 +96,6 @@ export default function AdminOrdersPage() {
   return (
 
     <div className="w-full min-h-screen bg-primary">
-
-      <Header />
-      <TtitleBar title="Orders Management" />
-
 
       {/* MODAL */}
       <OrderModal
@@ -296,3 +290,4 @@ export default function AdminOrdersPage() {
   );
 
 }
+
