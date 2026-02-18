@@ -11,49 +11,70 @@ export function ProductPage() {
 
   const PRODUCTS_PER_CATEGORY = 10;
 
-  // track visible count per category
   const [visibleCount, setVisibleCount] = useState({});
 
-  // load products
+  // LOAD PRODUCTS
   useEffect(() => {
+
     async function loadProducts() {
+
       try {
+
         const res = await axios.get(
           import.meta.env.VITE_API_URL + "/api/products"
         );
 
         const productList = res.data || [];
+
         setProducts(productList);
 
-        // initialize visible count for each category
+        // initialize visible count
         const counts = {};
-        productList.forEach(p => {
-          const cat = (p.category || "other").toLowerCase();
-          if (!counts[cat]) counts[cat] = PRODUCTS_PER_CATEGORY;
+
+        productList.forEach(product => {
+
+          const cat = product.category || "Other";
+
+          if (!counts[cat]) {
+            counts[cat] = PRODUCTS_PER_CATEGORY;
+          }
+
         });
 
         setVisibleCount(counts);
 
-      } catch (err) {
-        toast.error("Failed to load products");
-      } finally {
-        setLoading(false);
       }
+      catch (err) {
+
+        console.error(err);
+        toast.error("Failed to load products");
+
+      }
+      finally {
+
+        setLoading(false);
+
+      }
+
     }
 
     loadProducts();
+
   }, []);
 
-  // group products by category
-  const productsByCategory = useMemo(() => {
+
+  // GROUP PRODUCTS BY CATEGORY
+  const groupedProducts = useMemo(() => {
 
     const grouped = {};
 
     products.forEach(product => {
 
-      const cat = (product.category || "other").toLowerCase();
+      const cat = product.category || "Other";
 
-      if (!grouped[cat]) grouped[cat] = [];
+      if (!grouped[cat]) {
+        grouped[cat] = [];
+      }
 
       grouped[cat].push(product);
 
@@ -64,7 +85,7 @@ export function ProductPage() {
   }, [products]);
 
 
-  // view more for specific category
+  // VIEW MORE FUNCTION
   function handleViewMore(category) {
 
     setVisibleCount(prev => ({
@@ -75,70 +96,109 @@ export function ProductPage() {
   }
 
 
-  if (loading) return <Loader />;
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen flex justify-center items-center bg-primary">
+        <Loader />
+      </div>
+    );
+  }
 
 
   return (
-    <div className="w-full bg-orange-50 min-h-screen p-6">
 
-      {Object.keys(productsByCategory).map(category => {
+    <div className="w-full min-h-screen bg-primary">
 
-        const categoryProducts = productsByCategory[category];
-        const visible = visibleCount[category] || PRODUCTS_PER_CATEGORY;
-
-        return (
-
-          <div key={category} className="mb-12">
-
-            {/* CATEGORY TITLE */}
-            <div className="flex justify-between items-center mb-4">
-
-              <h2 className="text-2xl font-bold capitalize">
-                {category}
-              </h2>
-
-            </div>
+      <div className="max-w-7xl mx-auto px-6 py-8">
 
 
-            {/* PRODUCTS GRID */}
-            <div className="flex flex-wrap gap-6">
+        {Object.keys(groupedProducts).map(category => {
 
-              {categoryProducts
-                .slice(0, visible)
-                .map(product => (
+          const categoryProducts = groupedProducts[category];
 
-                  <ProductCard
-                    key={product.productID}
-                    product={product}
-                  />
+          const visible = visibleCount[category] || PRODUCTS_PER_CATEGORY;
 
-                ))}
+          return (
 
-            </div>
+            <div
+              key={category}
+              className="mb-12 bg-white border border-secondary/10 rounded-2xl shadow-sm p-6"
+            >
 
+              {/* CATEGORY HEADER */}
+              <div className="flex justify-between items-center mb-6">
 
-            {/* VIEW MORE BUTTON */}
-            {visible < categoryProducts.length && (
+                <h2 className="text-xl font-semibold text-secondary capitalize">
 
-              <div className="mt-6 flex justify-center">
+                  {category}
 
-                <button
-                  onClick={() => handleViewMore(category)}
-                  className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
-                >
-                  View More
-                </button>
+                </h2>
+
+                <span className="text-xs bg-accent/10 text-accent px-3 py-1 rounded-full">
+
+                  {categoryProducts.length} items
+
+                </span>
 
               </div>
 
-            )}
 
-          </div>
+              {/* PRODUCTS GRID */}
+              <div className="flex flex-wrap gap-6 justify-start">
 
-        );
+                {categoryProducts
+                  .slice(0, visible)
+                  .map(product => (
 
-      })}
+                    <ProductCard
+                      key={product.productID}
+                      product={product}
+                    />
+
+                  ))}
+
+              </div>
+
+
+              {/* VIEW MORE BUTTON */}
+              {visible < categoryProducts.length && (
+
+                <div className="flex justify-center mt-6">
+
+                  <button
+                    onClick={() => handleViewMore(category)}
+                    className="
+                      px-6 py-2
+                      bg-accent/10
+                      text-secondary
+                      rounded-full
+                      ring-1 ring-accent/30
+                      hover:bg-accent/20
+                      hover:ring-accent
+                      transition
+                      font-medium
+                    "
+                  >
+
+                    View More
+
+                  </button>
+
+                </div>
+
+              )}
+
+            </div>
+
+          );
+
+        })}
+
+
+      </div>
 
     </div>
+
   );
+
 }
