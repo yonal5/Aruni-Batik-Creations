@@ -2,8 +2,10 @@ import axios from "axios";
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
+import { Loader } from "../components/loader";
 import ProductCard from "../components/productCard";
-import Header from "../components/header";
+import Header, { ProductNews, TtitleBar } from "../components/header";
+import React from "react";
 
 export function ProductPage() {
   const location = useLocation();
@@ -14,8 +16,15 @@ export function ProductPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const scrollRefs = useRef({}); // For multiple categories
-  const BATCH_SIZE = 12; // not used here, but can be for infinite scroll
+  // infinite-scroll / loop state
+  const BATCH_SIZE = 12;
+  const [visibleProducts, setVisibleProducts] = useState([]); // items shown in the grid
+  const nextIndexRef = useRef(0); // next slice start index in filtered array
+  const sentinelRef = useRef(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // guard ref to avoid concurrent loadMore calls
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
     async function load() {
@@ -23,8 +32,8 @@ export function ProductPage() {
       try {
         const response = await axios.get(import.meta.env.VITE_API_URL + "/api/products");
         setProducts(response.data || []);
-      } catch (err) {
-        console.error("Error fetching products:", err);
+      } catch (error) {
+        console.error("Error fetching products:", error);
         toast.error("Failed to load products");
       } finally {
         setLoading(false);
@@ -33,8 +42,9 @@ export function ProductPage() {
     load();
   }, []);
 
-  // Filtered products based on search/category query
+  // compute filtered list based on search/category
   const filtered = useMemo(() => {
+    if (!searchQuery && !categoryQuery) return products;
     return products.filter((p) => {
       const name = (p.title || p.name || "").toString().toLowerCase();
       const matchesName = !searchQuery || name.includes(searchQuery);
@@ -44,81 +54,89 @@ export function ProductPage() {
     });
   }, [products, searchQuery, categoryQuery]);
 
-  // Group products by category for horizontal slider
-  const categories = useMemo(() => {
-    const catMap = {};
-    filtered.forEach((p) => {
-      if (!catMap[p.category]) catMap[p.category] = [];
-      catMap[p.category].push(p);
-    });
-    return catMap;
+  // (re)initialize visibleProducts whenever filtered list changes
+  useEffect(() => {
+    isLoadingRef.current = false;
+    nextIndexRef.current = 0;
+    if (filtered.length === 0) {
+      setVisibleProducts([]);
+      return;
+    }
+    const start = 0;
+    const end = Math.min(filtered.length, BATCH_SIZE);
+    setVisibleProducts(filtered.slice(start, end));
+    nextIndexRef.current = end % filtered.length;
   }, [filtered]);
 
-  const scrollLeft = (category) => {
-    const ref = scrollRefs.current[category];
-    if (ref) ref.scrollBy({ left: -400, behavior: "smooth" });
-  };
+  // load more items (looping) — show loader for 1.5s on each load
+  const loadMore = useCallback(() => {
+    if (filtered.length === 0) return;
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
+    setLoadingMore(true);
 
-  const scrollRight = (category) => {
-    const ref = scrollRefs.current[category];
-    if (ref) ref.scrollBy({ left: 400, behavior: "smooth" });
-  };
+    setTimeout(() => {
+      const start = nextIndexRef.current;
+      const batch = [];
+      for (let i = 0; i < BATCH_SIZE; i++) {
+        const idx = (start + i) % filtered.length;
+        batch.push(filtered[idx]);
+      }
+      nextIndexRef.current = (start + BATCH_SIZE) % filtered.length;
+      setVisibleProducts((prev) => [...prev, ...batch]);
+      setLoadingMore(false);
+      isLoadingRef.current = false;
+    }, 1500);
+  }, [filtered]);
+
+  // IntersectionObserver to trigger loadMore when sentinel visible
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          loadMore();
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: "200px",
+      threshold: 0.1,
+    });
+    obs.observe(sentinel);
+    return () => obs.disconnect();
+  }, [loadMore]);
 
   return (
     <div className="w-full min-h-[calc(100vh-100px)] bg-orange-100">
-      <Header />
-
       {loading ? (
-        <div className="p-8 text-center">Loading...</div>
-      ) : filtered.length === 0 ? (
-        <div className="p-8 text-center">No products found.</div>
+        <Loader />
       ) : (
-        <div className="max-w-7xl mx-auto p-4 flex flex-col gap-6">
-          {Object.keys(categories).map((cat) => (
-            <div key={cat} className="bg-white rounded-xl p-4 shadow-sm">
-              {/* Header */}
-              <div className="flex justify-between items-center mb-3">
-                <h2 className="text-lg font-semibold text-gray-800">{cat}</h2>
-                <a
-                  href={`/products?category=${encodeURIComponent(cat)}`}
-                  className="text-orange-500 hover:text-orange-600 font-medium text-sm"
-                >
-                  View All →
-                </a>
+        <div className="w-full h-full p-4">
+          {filtered.length === 0 ? (
+            <div className="p-8 text-center text-gray-600">No products found.</div>
+          ) : (
+            <>
+              <div className="grid gap-4
+                              grid-cols-2
+                              sm:grid-cols-3
+                              md:grid-cols-4
+                              lg:grid-cols-5">
+                {visibleProducts.map((item, i) => (
+                  <ProductCard key={`${item.productID || item.id}-${i}`} product={item} />
+                ))}
               </div>
-
-              {/* Horizontal scroll */}
-              <div className="relative">
-                <button
-                  onClick={() => scrollLeft(cat)}
-                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2 hover:bg-orange-100"
-                >
-                  ←
-                </button>
-
-                <div
-                  ref={(el) => (scrollRefs.current[cat] = el)}
-                  className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide"
-                >
-                  {categories[cat].map((item, i) => (
-                    <div
-                      key={`${item.productID || item.id}-${i}`}
-                      className="snap-start min-w-[80%] sm:min-w-[50%] md:min-w-[33.33%] lg:min-w-[25%] xl:min-w-[20%] transition-transform duration-300 hover:scale-105"
-                    >
-                      <ProductCard product={item} />
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => scrollRight(cat)}
-                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-2 hover:bg-orange-100"
-                >
-                  →
-                </button>
+              {/* sentinel for intersection observer */}
+              <div ref={sentinelRef} className="w-full flex justify-center items-center my-6">
+                {loadingMore ? (
+                  <div className="text-sm text-gray-600">Loading more...</div>
+                ) : (
+                  <div className="text-sm text-gray-400">Scroll to load more</div>
+                )}
               </div>
-            </div>
-          ))}
+            </>
+          )}
         </div>
       )}
     </div>
