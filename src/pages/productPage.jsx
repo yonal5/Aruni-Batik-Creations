@@ -1,306 +1,311 @@
 import axios from "axios";
-import { useEffect, useState, useMemo } from "react";
-import { useLocation } from "react-router-dom";
-import toast from "react-hot-toast";
-import { Loader } from "../components/loader";
-import ProductCard from "../components/productCard";
-import Header from "../components/header";
-import React from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export function ProductPage() {
+import { Loader } from "../../components/loader";
+import OrderModal from "../../components/orderInfoModal";
 
-  const location = useLocation();
+export default function AdminOrdersPage() {
 
-  const query = useMemo(
-    () => new URLSearchParams(location.search),
-    [location.search]
-  );
+    const [orders, setOrders] = useState([]);
 
-  const searchQuery = (query.get("search") || "").trim().toLowerCase();
-  const categoryQuery = (query.get("category") || "").trim().toLowerCase();
+    const [isLoading, setIsLoading] = useState(true);
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const PRODUCTS_PER_CATEGORY = 10;
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const [visibleCount, setVisibleCount] = useState({});
+    const navigate = useNavigate();
 
 
-  // LOAD PRODUCTS
-  useEffect(() => {
+    /*
+    LOAD ORDERS FUNCTION
+    */
+    async function loadOrders() {
 
-    async function loadProducts() {
+        try {
 
-      try {
+            const token = localStorage.getItem("token");
 
-        const res = await axios.get(
-          import.meta.env.VITE_API_URL + "/api/products"
-        );
+            if (!token) {
+                navigate("/login");
+                return;
+            }
 
-        const data = res.data || [];
+            setIsLoading(true);
 
-        setProducts(data);
+            const response = await axios.get(
 
-        // initialize visible count per category
-        const counts = {};
+                import.meta.env.VITE_API_URL + "/api/orders",
 
-        data.forEach((p) => {
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
 
-          const cat = (p.category || "other").toLowerCase();
+            );
 
-          if (!counts[cat]) {
+            setOrders(response.data);
 
-            counts[cat] = PRODUCTS_PER_CATEGORY;
+        }
+        catch (err) {
 
-          }
+            console.log(err);
 
-        });
+            if (err.response?.status === 401) {
 
-        setVisibleCount(counts);
+                localStorage.removeItem("token");
 
-      }
-      catch (err) {
-
-        console.error(err);
-
-        toast.error("Failed to load products");
-
-      }
-      finally {
-
-        setLoading(false);
-
-      }
-
-    }
-
-    loadProducts();
-
-  }, []);
-
-
-
-  // FILTER PRODUCTS
-  const filteredProducts = useMemo(() => {
-
-    return products.filter((p) => {
-
-      const name =
-        (p.title || p.name || "").toLowerCase();
-
-      const category =
-        (p.category || "").toLowerCase();
-
-      const matchSearch =
-        !searchQuery || name.includes(searchQuery);
-
-      const matchCategory =
-        !categoryQuery || category.includes(categoryQuery);
-
-      return matchSearch && matchCategory;
-
-    });
-
-  }, [products, searchQuery, categoryQuery]);
-
-
-
-  // GROUP PRODUCTS BY CATEGORY
-  const groupedProducts = useMemo(() => {
-
-    const grouped = {};
-
-    filteredProducts.forEach((product) => {
-
-      const cat =
-        (product.category || "other").toLowerCase();
-
-      if (!grouped[cat]) {
-
-        grouped[cat] = [];
-
-      }
-
-      grouped[cat].push(product);
-
-    });
-
-    return grouped;
-
-  }, [filteredProducts]);
-
-
-
-  // LOAD MORE
-  function loadMore(category) {
-
-    setVisibleCount((prev) => ({
-
-      ...prev,
-
-      [category]: prev[category] + PRODUCTS_PER_CATEGORY,
-
-    }));
-
-  }
-
-
-
-  return (
-
-    <div className="w-full min-h-screen bg-orange-100">
-
-      {
-
-        loading ? (
-
-          <Loader />
-
-        ) : (
-
-          <div className="w-full max-w-[1600px] mx-auto p-3">
-
-            {
-
-              Object.keys(groupedProducts).length === 0 ? (
-
-                <div className="text-center p-10">
-
-                  No products found
-
-                </div>
-
-              ) : (
-
-                Object.keys(groupedProducts).map((category) => {
-
-                  const categoryProducts =
-                    groupedProducts[category];
-
-                  const visible =
-                    visibleCount[category] ||
-                    PRODUCTS_PER_CATEGORY;
-
-                  return (
-
-                    <div
-                      key={category}
-                      className="
-                        bg-white
-                        rounded-xl
-                        mb-6
-                        p-4
-                        shadow-sm
-                      "
-                    >
-
-                      {/* CATEGORY TITLE */}
-
-                      <h2 className="
-                        text-xl
-                        font-semibold
-                        mb-4
-                        capitalize
-                      ">
-
-                        {category}
-
-                      </h2>
-
-
-
-                      {/* PRODUCT GRID */}
-
-                      <div className="
-                        flex
-                        flex-wrap
-                        justify-center
-                      ">
-
-                        {
-
-                          categoryProducts
-                          .slice(0, visible)
-                          .map((product, index) => (
-
-                            <div
-                              key={index}
-                              className="
-                                w-1/2
-                                sm:w-1/2
-                                md:w-1/3
-                                lg:w-1/4
-                                xl:w-1/5
-                                p-2
-                              "
-                            >
-
-                              <ProductCard product={product} />
-
-                            </div>
-
-                          ))
-
-                        }
-
-                      </div>
-
-
-
-                      {/* LOAD MORE BUTTON */}
-
-                      {
-
-                        visible < categoryProducts.length && (
-
-                          <div className="
-                            flex
-                            justify-center
-                            mt-4
-                          ">
-
-                            <button
-                              onClick={() => loadMore(category)}
-                              className="
-                                px-6
-                                py-2
-                                bg-orange-500
-                                text-white
-                                rounded-lg
-                                hover:bg-orange-600
-                                transition
-                              "
-                            >
-
-                              Load More
-
-                            </button>
-
-                          </div>
-
-                        )
-
-                      }
-
-                    </div>
-
-                  );
-
-                })
-
-              )
+                navigate("/login");
 
             }
 
-          </div>
+            else {
 
-        )
+                alert("Failed to load orders");
 
-      }
+            }
 
-    </div>
+        }
+        finally {
 
-  );
+            setIsLoading(false);
+
+        }
+
+    }
+
+
+    /*
+    RUN ONLY ONCE
+    */
+    useEffect(() => {
+
+        loadOrders();
+
+    }, []);
+
+
+    return (
+
+        <div className="w-full min-h-full">
+
+            <OrderModal
+
+                isModalOpen={isModalOpen}
+
+                closeModal={() => setIsModalOpen(false)}
+
+                selectedOrder={selectedOrder}
+
+                refresh={loadOrders}
+
+            />
+
+
+            <div className="mx-auto max-w-7xl p-6">
+
+                <div className="rounded-2xl border border-secondary/10 bg-primary shadow-sm">
+
+                    <div className="flex items-center justify-between gap-4 border-b border-secondary/10 px-6 py-4">
+
+                        <h1 className="text-lg font-semibold text-secondary">
+
+                            Orders
+
+                        </h1>
+
+                        <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+
+                            {orders.length} orders
+
+                        </span>
+
+                    </div>
+
+
+                    <div className="overflow-x-auto">
+
+                        {isLoading ? (
+
+                            <Loader />
+
+                        ) : (
+
+                            <table className="w-full min-w-[880px] text-left">
+
+                                <thead className="bg-secondary text-white">
+
+                                    <tr>
+
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+
+                                            Order ID
+
+                                        </th>
+
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+
+                                            Items
+
+                                        </th>
+
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+
+                                            Customer
+
+                                        </th>
+
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+
+                                            Email
+
+                                        </th>
+
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+
+                                            Phone
+
+                                        </th>
+
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+
+                                            Address
+
+                                        </th>
+
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+
+                                            Total
+
+                                        </th>
+
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+
+                                            Status
+
+                                        </th>
+
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+
+                                            Date
+
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody>
+
+                                    {orders.length === 0 && (
+
+                                        <tr>
+
+                                            <td colSpan={9}
+                                                className="text-center py-10">
+
+                                                No orders found
+
+                                            </td>
+
+                                        </tr>
+
+                                    )}
+
+
+                                    {orders.map((order) => (
+
+                                        <tr
+
+                                            key={order.orderID}
+
+                                            className="border-b hover:bg-gray-100 cursor-pointer"
+
+                                            onClick={() => {
+
+                                                setSelectedOrder(order);
+
+                                                setIsModalOpen(true);
+
+                                            }}
+
+                                        >
+
+                                            <td className="px-4 py-3">
+
+                                                {order.orderID}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.items.length}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.customerName}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.email}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.phone}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.address}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                LKR {order.total.toFixed(2)}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.status}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {new Date(order.date).toLocaleDateString()}
+
+                                            </td>
+
+                                        </tr>
+
+                                    ))}
+
+                                </tbody>
+
+                            </table>
+
+                        )}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    );
 
 }
