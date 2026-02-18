@@ -1,6 +1,6 @@
 import axios from "axios";
-import { useEffect, useState, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Loader } from "../components/loader";
 import ProductCard from "../components/productCard";
@@ -10,6 +10,7 @@ import React from "react";
 export function ProductPage() {
 
   const location = useLocation();
+  const navigate = useNavigate();
 
   const query = useMemo(
     () => new URLSearchParams(location.search),
@@ -22,13 +23,10 @@ export function ProductPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const PRODUCTS_PER_CATEGORY = 10;
+  // horizontal scroll refs
+  const categoryScrollRef = useRef(null);
+  const productScrollRefs = useRef({});
 
-  // visible count per category
-  const [visibleCount, setVisibleCount] = useState({});
-
-
-  // LOAD PRODUCTS
   useEffect(() => {
 
     async function load() {
@@ -39,29 +37,11 @@ export function ProductPage() {
           import.meta.env.VITE_API_URL + "/api/products"
         );
 
-        const data = response.data || [];
-
-        setProducts(data);
-
-        // initialize visible counts
-        const counts = {};
-
-        data.forEach((p) => {
-
-          const cat = (p.category || "other").toLowerCase();
-
-          if (!counts[cat]) {
-            counts[cat] = PRODUCTS_PER_CATEGORY;
-          }
-
-        });
-
-        setVisibleCount(counts);
+        setProducts(response.data || []);
 
       }
       catch (error) {
 
-        console.error(error);
         toast.error("Failed to load products");
 
       }
@@ -79,18 +59,16 @@ export function ProductPage() {
 
 
 
-  // FILTER PRODUCTS
+  // FILTER
   const filtered = useMemo(() => {
 
     return products.filter((p) => {
 
       const name = (p.title || p.name || "").toLowerCase();
+      const prodCategory = (p.category || "").toLowerCase();
 
       const matchesSearch =
         !searchQuery || name.includes(searchQuery);
-
-      const prodCategory =
-        (p.category || "").toLowerCase();
 
       const matchesCategory =
         !categoryQuery || prodCategory.includes(categoryQuery);
@@ -103,7 +81,7 @@ export function ProductPage() {
 
 
 
-  // GROUP BY CATEGORY
+  // GROUP
   const groupedProducts = useMemo(() => {
 
     const grouped = {};
@@ -112,9 +90,7 @@ export function ProductPage() {
 
       const cat = (product.category || "other").toLowerCase();
 
-      if (!grouped[cat]) {
-        grouped[cat] = [];
-      }
+      if (!grouped[cat]) grouped[cat] = [];
 
       grouped[cat].push(product);
 
@@ -126,129 +102,170 @@ export function ProductPage() {
 
 
 
-  // LOAD MORE PER CATEGORY
-  function loadMore(category) {
+  function scrollLeft(ref) {
+    if (ref.current) {
+      ref.current.scrollBy({ left: -400, behavior: "smooth" });
+    }
+  }
 
-    setVisibleCount((prev) => ({
-      ...prev,
-      [category]: prev[category] + PRODUCTS_PER_CATEGORY
-    }));
-
+  function scrollRight(ref) {
+    if (ref.current) {
+      ref.current.scrollBy({ left: 400, behavior: "smooth" });
+    }
   }
 
 
 
   return (
 
-    <div className="w-full min-h-[calc(100vh-100px)] bg-orange-100">  
+    <div className="w-full min-h-[calc(100vh-100px)] bg-orange-100">
+
+      <Header />
 
       {
 
-        loading ? (
+        loading ? <Loader /> :
 
-          <Loader />
+        <div className="w-full p-4">
 
-        ) : (
+          {/* -------------------- CATEGORY SLIDER -------------------- */}
 
-          <div className="w-full h-full flex flex-col loop bg-orange-100 p-4">
+          <div className="relative mb-6 bg-white rounded-xl p-3">
 
-            {
+            <button
+              onClick={() => scrollLeft(categoryScrollRef)}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow px-2 rounded-full"
+            >
+              {"<"}
+            </button>
 
-              Object.keys(groupedProducts).length === 0 ? (
+            <div
+              ref={categoryScrollRef}
+              className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
+            >
 
-                <div className="p-8 text-center">
-                  No products found.
-                </div>
+              {
 
-              ) : (
+                Object.keys(groupedProducts).map((cat) => (
 
-                Object.keys(groupedProducts).map((category) => {
+                  <button
+                    key={cat}
+                    onClick={() => navigate(`?category=${cat}`)}
+                    className="
+                      px-4 py-2
+                      bg-orange-200
+                      hover:bg-orange-300
+                      rounded-full
+                      whitespace-nowrap
+                      transition
+                    "
+                  >
+                    {cat}
+                  </button>
 
-                  const categoryProducts =
-                    groupedProducts[category];
+                ))
 
-                  const visible =
-                    visibleCount[category] ||
-                    PRODUCTS_PER_CATEGORY;
+              }
 
-                  return (
+            </div>
 
-                    <div
-                      key={category}
-                      className="w-full bg-white rounded-xl mb-6 p-4"
-                    >
-
-                      {/* CATEGORY TITLE */}
-                      <div className="text-xl font-semibold mb-4 capitalize">
-
-                        {category}
-
-                      </div>
-
-
-                      {/* PRODUCTS GRID */}
-                      <div className="flex flex-row flex-wrap justify-center">
-
-                        {
-
-                          categoryProducts
-                            .slice(0, visible)
-                            .map((item, i) => (
-
-                              <ProductCard
-                                key={`${item.productID}-${i}`}
-                                product={item}
-                              />
-
-                            ))
-
-                        }
-
-                      </div>
-
-
-                      {/* LOAD MORE BUTTON */}
-                      {
-
-                        visible < categoryProducts.length && (
-
-                          <div className="w-full flex justify-center mt-4">
-
-                            <button
-                              onClick={() => loadMore(category)}
-                              className="
-                                px-6 py-2
-                                bg-orange-500
-                                text-white
-                                rounded-lg
-                                hover:bg-orange-600
-                                transition
-                              "
-                            >
-
-                              Load More
-
-                            </button>
-
-                          </div>
-
-                        )
-
-                      }
-
-                    </div>
-
-                  );
-
-                })
-
-              )
-
-            }
+            <button
+              onClick={() => scrollRight(categoryScrollRef)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow px-2 rounded-full"
+            >
+              {">"}
+            </button>
 
           </div>
 
-        )
+
+
+          {/* -------------------- PRODUCTS PER CATEGORY -------------------- */}
+
+          {
+
+            Object.keys(groupedProducts).map((category) => (
+
+              <div
+                key={category}
+                className="bg-white rounded-xl mb-6 p-4 transition-all duration-300 hover:shadow-lg"
+              >
+
+                {/* HEADER ROW */}
+                <div className="flex justify-between items-center mb-4">
+
+                  <h2 className="text-xl font-semibold capitalize">
+                    {category}
+                  </h2>
+
+                  <button
+                    onClick={() => navigate(`/products?category=${category}`)}
+                    className="text-orange-500 hover:underline"
+                  >
+                    View All
+                  </button>
+
+                </div>
+
+
+                {/* HORIZONTAL PRODUCT SCROLL */}
+
+                <div className="relative">
+
+                  <button
+                    onClick={() => scrollLeft(productScrollRefs.current[category])}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow px-2 rounded-full"
+                  >
+                    {"<"}
+                  </button>
+
+                  <div
+                    ref={(el) =>
+                      productScrollRefs.current[category] = { current: el }
+                    }
+                    className="
+                      flex gap-4
+                      overflow-x-auto
+                      scroll-smooth
+                      scrollbar-hide
+                    "
+                  >
+
+                    {
+
+                      groupedProducts[category]
+                        .slice(0, 10)
+                        .map((item, i) => (
+
+                          <div
+                            key={`${item.productID}-${i}`}
+                            className="min-w-[220px] transform transition duration-300 hover:scale-105"
+                          >
+                            <ProductCard product={item} />
+                          </div>
+
+                        ))
+
+                    }
+
+                  </div>
+
+                  <button
+                    onClick={() => scrollRight(productScrollRefs.current[category])}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow px-2 rounded-full"
+                  >
+                    {">"}
+                  </button>
+
+                </div>
+
+              </div>
+
+            ))
+
+          }
+
+        </div>
 
       }
 
