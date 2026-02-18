@@ -4,66 +4,174 @@ import toast from "react-hot-toast";
 import React from "react";
 
 export default function ProductCard({ product }) {
+
   const navigate = useNavigate();
 
   return (
-    <div className="w-full h-auto shadow-2xl m-3 flex flex-col rounded-[40px] p-4
-                    sm:p-5
-                    md:p-[25px]
-                    bg-white
-                    transition-all">
-      
-      {/* PRODUCT IMAGE */}
+
+    <div
+      className="
+        w-full
+        bg-white
+        rounded-[40px]
+        shadow-2xl
+        overflow-hidden
+        flex flex-col
+        transition-all duration-300
+        hover:shadow-xl
+      "
+    >
+
+      {/* IMAGE */}
       <Link to={"/overview/" + product.productID}>
-        <img
-          className="w-full h-[clamp(250px,40vw,450px)] object-cover rounded-[30px]"
-          src={product.images[0]}
-        />
+
+        <div className="w-full h-[450px] overflow-hidden">
+
+          <img
+            src={product.images[0]}
+            alt={product.name}
+            className="
+              w-full
+              h-full
+              object-cover
+            "
+          />
+
+        </div>
+
       </Link>
 
-      {/* PRODUCT NAME */}
-      <h1 className="mt-3 text-[clamp(14px,1.2vw,20px)] font-bold text-secondary">
-        {product.name}
-      </h1>
 
-      {/* PRICE */}
-      {product.labelledPrice > product.price ? (
-        <div className="flex gap-2 items-center text-[clamp(12px,1vw,18px)]">
-          <p className="text-accent font-semibold">LKR {product.price.toFixed(2)}</p>
-        </div>
-      ) : (
-        <p className="text-accent font-semibold text-[clamp(12px,1vw,18px)]">
+      {/* CONTENT */}
+      <div className="flex flex-col p-4 gap-2">
+
+        {/* NAME */}
+        <h1
+          className="
+            font-bold
+            text-secondary
+            leading-tight
+            text-[14px]
+            sm:text-[15px]
+            md:text-[16px]
+            lg:text-[17px]
+          "
+        >
+          {product.name}
+        </h1>
+
+
+        {/* PRICE */}
+        <p
+          className="
+            font-semibold
+            text-accent
+            text-[13px]
+            sm:text-[14px]
+            md:text-[15px]
+            lg:text-[16px]
+          "
+        >
           LKR {product.price.toFixed(2)}
         </p>
-      )}
 
-      {/* PRODUCT ID */}
-      <p className="text-secondary/70 text-[clamp(10px,0.9vw,14px)]">{product.productID}</p>
 
-      {/* BUTTONS */}
-      <div className="flex flex-col gap-2 mt-3 sm:mt-4">
-        <button
-          onClick={() => {
-            addToCart(product, 1);
-            toast.success("Added to cart!");
-            navigate("/cart");
-          }}
-          className="w-full py-[clamp(6px,1.2vw,10px)] rounded-xl border-2 border-accent text-accent font-semibold
-                     transition-all duration-300 hover:bg-accent hover:text-white shadow-sm hover:shadow-md active:scale-[0.98]
-                     text-[clamp(12px,1vw,16px)]"
+        {/* PRODUCT ID */}
+        <p
+          className="
+            text-secondary/70
+            text-[11px]
+            sm:text-[12px]
+            md:text-[13px]
+          "
         >
-          Add to Cart
-        </button>
+          {product.productID}
+        </p>
 
-        <Link
-          to={`/overview/${product.productID}`}
-          className="w-full py-[clamp(6px,1.2vw,10px)] rounded-xl border-2 border-accent text-accent text-center font-semibold
-                     transition-all duration-300 hover:bg-accent/90 hover:text-white shadow-sm hover:shadow-md active:scale-[0.98]
-                     text-[clamp(12px,1vw,16px)]"
-        >
-          View Product
-        </Link>
+
+        {/* BUTTONS */}
+        <div className="flex flex-col gap-2 mt-2">
+
+          {/* ADD TO CART */}
+          <button
+
+            onClick={() => {
+
+              addToCart(product, 1);
+              toast.success("Added to cart!");
+              navigate("/cart");
+
+            }}
+
+            className="
+              w-full
+              border-2
+              border-accent
+              text-accent
+              rounded-xl
+              font-semibold
+              transition-all duration-300
+              hover:bg-accent
+              hover:text-white
+
+              py-1.5
+              text-[12px]
+
+              sm:py-2
+              sm:text-[13px]
+
+              md:py-2.5
+              md:text-[14px]
+
+              lg:text-[15px]
+            "
+          >
+
+            Add to Cart
+
+          </button>
+
+
+          {/* VIEW PRODUCT */}
+          <Link
+
+            to={"/overview/" + product.productID}
+
+            className="
+              w-full
+              border-2
+              border-accent
+              text-accent
+              rounded-xl
+              font-semibold
+              text-center
+              transition-all duration-300
+              hover:bg-accent
+              hover:text-white
+
+              py-1.5
+              text-[12px]
+
+              sm:py-2
+              sm:text-[13px]
+
+              md:py-2.5
+              md:text-[14px]
+
+              lg:text-[15px]
+            "
+          >
+
+            View Product
+
+          </Link>
+
+        </div>
+
       </div>
+
     </div>
+
   );
+
 }
