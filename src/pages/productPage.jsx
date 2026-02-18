@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Loader } from "../components/loader";
 import ProductCard from "../components/productCard";
@@ -8,29 +8,42 @@ import React from "react";
 
 export function ProductPage() {
   const location = useLocation();
-  const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const navigate = useNavigate();
+
+  const query = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
 
   const searchQuery = (query.get("search") || "").trim().toLowerCase();
   const categoryQuery = (query.get("category") || "").trim().toLowerCase();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const PRODUCTS_PER_CATEGORY = 10;
+
+  // visible count per category
   const [visibleCount, setVisibleCount] = useState({});
 
-  // Load products
+  // LOAD PRODUCTS
   useEffect(() => {
     async function load() {
       try {
-        const response = await axios.get(import.meta.env.VITE_API_URL + "/api/products");
+        const response = await axios.get(
+          import.meta.env.VITE_API_URL + "/api/products"
+        );
+
         const data = response.data || [];
         setProducts(data);
 
+        // initialize visible counts
         const counts = {};
         data.forEach((p) => {
           const cat = (p.category || "other").toLowerCase();
           if (!counts[cat]) counts[cat] = PRODUCTS_PER_CATEGORY;
         });
+
         setVisibleCount(counts);
       } catch (error) {
         console.error(error);
@@ -39,10 +52,11 @@ export function ProductPage() {
         setLoading(false);
       }
     }
+
     load();
   }, []);
 
-  // Filter products
+  // FILTER PRODUCTS
   const filtered = useMemo(() => {
     return products.filter((p) => {
       const name = (p.title || p.name || "").toLowerCase();
@@ -53,7 +67,7 @@ export function ProductPage() {
     });
   }, [products, searchQuery, categoryQuery]);
 
-  // Group by category
+  // GROUP BY CATEGORY
   const groupedProducts = useMemo(() => {
     const grouped = {};
     filtered.forEach((product) => {
@@ -64,7 +78,7 @@ export function ProductPage() {
     return grouped;
   }, [filtered]);
 
-  // Load more per category
+  // LOAD MORE PER CATEGORY
   function loadMore(category) {
     setVisibleCount((prev) => ({
       ...prev,
@@ -77,7 +91,7 @@ export function ProductPage() {
       {loading ? (
         <Loader />
       ) : (
-        <div className="w-full h-full flex flex-col bg-white">
+        <div className="w-full h-full flex flex-col loop bg-white">
           {Object.keys(groupedProducts).length === 0 ? (
             <div className="p-8 text-center">No products found.</div>
           ) : (
@@ -91,18 +105,20 @@ export function ProductPage() {
                   <div className="text-xl font-semibold mb-4 capitalize">{category}</div>
 
                   {/* PRODUCTS GRID */}
-                  <div
-                    className="
-                      grid gap-4
-                      grid-cols-1
-                      sm:grid-cols-3
-                      md:grid-cols-3
-                      lg:grid-cols-4
-                      justify-items-center
-                    "
-                  >
+                  <div className="flex flex-wrap justify-center -mx-3">
                     {categoryProducts.slice(0, visible).map((item, i) => (
-                      <div key={`${item.productID}-${i}`} className="w-full max-w-[350px]">
+                      <div
+                        key={`${item.productID}-${i}`}
+                        className="
+                          px-3
+                          mb-6
+                          w-full
+                          sm:w-1/2
+                          md:w-1/3
+                          lg:w-1/4
+                          xl:w-1/5
+                        "
+                      >
                         <ProductCard product={item} />
                       </div>
                     ))}
@@ -113,7 +129,14 @@ export function ProductPage() {
                     <div className="w-full flex justify-center mt-4">
                       <button
                         onClick={() => loadMore(category)}
-                        className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+                        className="
+                          px-6 py-2
+                          bg-orange-500
+                          text-white
+                          rounded-lg
+                          hover:bg-orange-600
+                          transition
+                        "
                       >
                         Load More
                       </button>
