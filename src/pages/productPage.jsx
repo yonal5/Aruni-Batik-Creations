@@ -1,39 +1,54 @@
 import axios from "axios";
 import { useEffect, useState, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Loader } from "../components/loader";
 import ProductCard from "../components/productCard";
+import Header from "../components/header";
+import React from "react";
 
 export function ProductPage() {
+
+  const location = useLocation();
+
+  const query = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+
+  const searchQuery = (query.get("search") || "").trim().toLowerCase();
+  const categoryQuery = (query.get("category") || "").trim().toLowerCase();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const PRODUCTS_PER_CATEGORY = 10;
 
+  // visible count per category
   const [visibleCount, setVisibleCount] = useState({});
+
 
   // LOAD PRODUCTS
   useEffect(() => {
 
-    async function loadProducts() {
+    async function load() {
 
       try {
 
-        const res = await axios.get(
+        const response = await axios.get(
           import.meta.env.VITE_API_URL + "/api/products"
         );
 
-        const productList = res.data || [];
+        const data = response.data || [];
 
-        setProducts(productList);
+        setProducts(data);
 
-        // initialize visible count
+        // initialize visible counts
         const counts = {};
 
-        productList.forEach(product => {
+        data.forEach((p) => {
 
-          const cat = product.category || "Other";
+          const cat = (p.category || "other").toLowerCase();
 
           if (!counts[cat]) {
             counts[cat] = PRODUCTS_PER_CATEGORY;
@@ -44,9 +59,9 @@ export function ProductPage() {
         setVisibleCount(counts);
 
       }
-      catch (err) {
+      catch (error) {
 
-        console.error(err);
+        console.error(error);
         toast.error("Failed to load products");
 
       }
@@ -58,19 +73,44 @@ export function ProductPage() {
 
     }
 
-    loadProducts();
+    load();
 
   }, []);
 
 
-  // GROUP PRODUCTS BY CATEGORY
+
+  // FILTER PRODUCTS
+  const filtered = useMemo(() => {
+
+    return products.filter((p) => {
+
+      const name = (p.title || p.name || "").toLowerCase();
+
+      const matchesSearch =
+        !searchQuery || name.includes(searchQuery);
+
+      const prodCategory =
+        (p.category || "").toLowerCase();
+
+      const matchesCategory =
+        !categoryQuery || prodCategory.includes(categoryQuery);
+
+      return matchesSearch && matchesCategory;
+
+    });
+
+  }, [products, searchQuery, categoryQuery]);
+
+
+
+  // GROUP BY CATEGORY
   const groupedProducts = useMemo(() => {
 
     const grouped = {};
 
-    products.forEach(product => {
+    filtered.forEach((product) => {
 
-      const cat = product.category || "Other";
+      const cat = (product.category || "other").toLowerCase();
 
       if (!grouped[cat]) {
         grouped[cat] = [];
@@ -82,13 +122,14 @@ export function ProductPage() {
 
     return grouped;
 
-  }, [products]);
+  }, [filtered]);
 
 
-  // VIEW MORE FUNCTION
-  function handleViewMore(category) {
 
-    setVisibleCount(prev => ({
+  // LOAD MORE PER CATEGORY
+  function loadMore(category) {
+
+    setVisibleCount((prev) => ({
       ...prev,
       [category]: prev[category] + PRODUCTS_PER_CATEGORY
     }));
@@ -96,106 +137,122 @@ export function ProductPage() {
   }
 
 
-  if (loading) {
-    return (
-      <div className="w-full min-h-screen flex justify-center items-center bg-primary">
-        <Loader />
-      </div>
-    );
-  }
-
 
   return (
 
-    <div className="w-full min-h-screen bg-primary">
+    <div className="w-full min-h-[calc(100vh-100px)] bg-orange-100">
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <Header />
 
+      {
 
-        {Object.keys(groupedProducts).map(category => {
+        loading ? (
 
-          const categoryProducts = groupedProducts[category];
+          <Loader />
 
-          const visible = visibleCount[category] || PRODUCTS_PER_CATEGORY;
+        ) : (
 
-          return (
+          <div className="w-full h-full flex flex-col loop bg-orange-100 p-4">
 
-            <div
-              key={category}
-              className="mb-12 bg-white border border-secondary/10 rounded-2xl shadow-sm p-6"
-            >
+            {
 
-              {/* CATEGORY HEADER */}
-              <div className="flex justify-between items-center mb-6">
+              Object.keys(groupedProducts).length === 0 ? (
 
-                <h2 className="text-xl font-semibold text-secondary capitalize">
-
-                  {category}
-
-                </h2>
-
-                <span className="text-xs bg-accent/10 text-accent px-3 py-1 rounded-full">
-
-                  {categoryProducts.length} items
-
-                </span>
-
-              </div>
-
-
-              {/* PRODUCTS GRID */}
-              <div className="flex flex-wrap gap-6 justify-start">
-
-                {categoryProducts
-                  .slice(0, visible)
-                  .map(product => (
-
-                    <ProductCard
-                      key={product.productID}
-                      product={product}
-                    />
-
-                  ))}
-
-              </div>
-
-
-              {/* VIEW MORE BUTTON */}
-              {visible < categoryProducts.length && (
-
-                <div className="flex justify-center mt-6">
-
-                  <button
-                    onClick={() => handleViewMore(category)}
-                    className="
-                      px-6 py-2
-                      bg-accent/10
-                      text-secondary
-                      rounded-full
-                      ring-1 ring-accent/30
-                      hover:bg-accent/20
-                      hover:ring-accent
-                      transition
-                      font-medium
-                    "
-                  >
-
-                    View More
-
-                  </button>
-
+                <div className="p-8 text-center">
+                  No products found.
                 </div>
 
-              )}
+              ) : (
 
-            </div>
+                Object.keys(groupedProducts).map((category) => {
 
-          );
+                  const categoryProducts =
+                    groupedProducts[category];
 
-        })}
+                  const visible =
+                    visibleCount[category] ||
+                    PRODUCTS_PER_CATEGORY;
+
+                  return (
+
+                    <div
+                      key={category}
+                      className="w-full bg-white rounded-xl mb-6 p-4"
+                    >
+
+                      {/* CATEGORY TITLE */}
+                      <div className="text-xl font-semibold mb-4 capitalize">
+
+                        {category}
+
+                      </div>
 
 
-      </div>
+                      {/* PRODUCTS GRID */}
+                      <div className="flex flex-row flex-wrap justify-center">
+
+                        {
+
+                          categoryProducts
+                            .slice(0, visible)
+                            .map((item, i) => (
+
+                              <ProductCard
+                                key={`${item.productID}-${i}`}
+                                product={item}
+                              />
+
+                            ))
+
+                        }
+
+                      </div>
+
+
+                      {/* LOAD MORE BUTTON */}
+                      {
+
+                        visible < categoryProducts.length && (
+
+                          <div className="w-full flex justify-center mt-4">
+
+                            <button
+                              onClick={() => loadMore(category)}
+                              className="
+                                px-6 py-2
+                                bg-orange-500
+                                text-white
+                                rounded-lg
+                                hover:bg-orange-600
+                                transition
+                              "
+                            >
+
+                              Load More
+
+                            </button>
+
+                          </div>
+
+                        )
+
+                      }
+
+                    </div>
+
+                  );
+
+                })
+
+              )
+
+            }
+
+          </div>
+
+        )
+
+      }
 
     </div>
 
