@@ -1,14 +1,14 @@
 import axios from "axios";
 import { useEffect, useState, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Loader } from "../components/loader";
 import ProductCard from "../components/productCard";
+import Header from "../components/header";
 import React from "react";
 
 export function ProductPage() {
   const location = useLocation();
-  const navigate = useNavigate();
 
   const query = useMemo(
     () => new URLSearchParams(location.search),
@@ -37,13 +37,11 @@ export function ProductPage() {
         const data = response.data || [];
         setProducts(data);
 
-        // initialize visible counts
         const counts = {};
         data.forEach((p) => {
           const cat = (p.category || "other").toLowerCase();
           if (!counts[cat]) counts[cat] = PRODUCTS_PER_CATEGORY;
         });
-
         setVisibleCount(counts);
       } catch (error) {
         console.error(error);
@@ -52,7 +50,6 @@ export function ProductPage() {
         setLoading(false);
       }
     }
-
     load();
   }, []);
 
@@ -100,24 +97,21 @@ export function ProductPage() {
               const visible = visibleCount[category] || PRODUCTS_PER_CATEGORY;
 
               return (
-                <div key={category} className="w-full bg-white rounded-xl mb-6 p-4">
+                <div
+                  key={category}
+                  className="w-full bg-white rounded-xl mb-6 p-4"
+                >
                   {/* CATEGORY TITLE */}
-                  <div className="text-xl font-semibold mb-4 capitalize">{category}</div>
+                  <div className="text-xl font-semibold mb-4 capitalize">
+                    {category}
+                  </div>
 
                   {/* PRODUCTS GRID */}
-                  <div className="flex flex-wrap justify-center -mx-3">
+                  <div className="flex flex-wrap justify-center">
                     {categoryProducts.slice(0, visible).map((item, i) => (
                       <div
                         key={`${item.productID}-${i}`}
-                        className="
-                          px-3
-                          mb-6
-                          w-full
-                          sm:w-1/2
-                          md:w-1/3
-                          lg:w-1/4
-                          xl:w-1/5
-                        "
+                        className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5"
                       >
                         <ProductCard product={item} />
                       </div>
@@ -129,14 +123,7 @@ export function ProductPage() {
                     <div className="w-full flex justify-center mt-4">
                       <button
                         onClick={() => loadMore(category)}
-                        className="
-                          px-6 py-2
-                          bg-orange-500
-                          text-white
-                          rounded-lg
-                          hover:bg-orange-600
-                          transition
-                        "
+                        className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
                       >
                         Load More
                       </button>
