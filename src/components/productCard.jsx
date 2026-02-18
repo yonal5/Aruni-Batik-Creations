@@ -25,7 +25,7 @@ export default function ProductCard({ product }) {
       {/* IMAGE */}
       <Link to={"/overview/" + product.productID}>
 
-        <div className="w-full h-[450px] overflow-hidden">
+        <div className="w-full h-object-cover overflow-hidden">
 
           <img
             src={product.images[0]}
