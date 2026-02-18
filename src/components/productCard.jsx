@@ -31,9 +31,8 @@ export default function ProductCard({ product }) {
             src={product.images[0]}
             alt={product.name}
             className="
-              w-full
-              h-full
-              object-cover
+              w-object-cover
+              h-object-cover
             "
           />
 
