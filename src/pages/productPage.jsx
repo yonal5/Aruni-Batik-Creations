@@ -8,6 +8,7 @@ import Header from "../components/header";
 import React from "react";
 
 export function ProductPage() {
+
   const location = useLocation();
 
   const query = useMemo(
@@ -23,118 +24,285 @@ export function ProductPage() {
 
   const PRODUCTS_PER_CATEGORY = 10;
 
-  // visible count per category
   const [visibleCount, setVisibleCount] = useState({});
+
 
   // LOAD PRODUCTS
   useEffect(() => {
-    async function load() {
+
+    async function loadProducts() {
+
       try {
-        const response = await axios.get(
+
+        const res = await axios.get(
           import.meta.env.VITE_API_URL + "/api/products"
         );
 
-        const data = response.data || [];
+        const data = res.data || [];
+
         setProducts(data);
 
+        // initialize visible count per category
         const counts = {};
+
         data.forEach((p) => {
+
           const cat = (p.category || "other").toLowerCase();
-          if (!counts[cat]) counts[cat] = PRODUCTS_PER_CATEGORY;
+
+          if (!counts[cat]) {
+
+            counts[cat] = PRODUCTS_PER_CATEGORY;
+
+          }
+
         });
+
         setVisibleCount(counts);
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to load products");
-      } finally {
-        setLoading(false);
+
       }
+      catch (err) {
+
+        console.error(err);
+
+        toast.error("Failed to load products");
+
+      }
+      finally {
+
+        setLoading(false);
+
+      }
+
     }
-    load();
+
+    loadProducts();
+
   }, []);
 
+
+
   // FILTER PRODUCTS
-  const filtered = useMemo(() => {
+  const filteredProducts = useMemo(() => {
+
     return products.filter((p) => {
-      const name = (p.title || p.name || "").toLowerCase();
-      const matchesSearch = !searchQuery || name.includes(searchQuery);
-      const prodCategory = (p.category || "").toLowerCase();
-      const matchesCategory = !categoryQuery || prodCategory.includes(categoryQuery);
-      return matchesSearch && matchesCategory;
+
+      const name =
+        (p.title || p.name || "").toLowerCase();
+
+      const category =
+        (p.category || "").toLowerCase();
+
+      const matchSearch =
+        !searchQuery || name.includes(searchQuery);
+
+      const matchCategory =
+        !categoryQuery || category.includes(categoryQuery);
+
+      return matchSearch && matchCategory;
+
     });
+
   }, [products, searchQuery, categoryQuery]);
 
-  // GROUP BY CATEGORY
-  const groupedProducts = useMemo(() => {
-    const grouped = {};
-    filtered.forEach((product) => {
-      const cat = (product.category || "other").toLowerCase();
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(product);
-    });
-    return grouped;
-  }, [filtered]);
 
-  // LOAD MORE PER CATEGORY
+
+  // GROUP PRODUCTS BY CATEGORY
+  const groupedProducts = useMemo(() => {
+
+    const grouped = {};
+
+    filteredProducts.forEach((product) => {
+
+      const cat =
+        (product.category || "other").toLowerCase();
+
+      if (!grouped[cat]) {
+
+        grouped[cat] = [];
+
+      }
+
+      grouped[cat].push(product);
+
+    });
+
+    return grouped;
+
+  }, [filteredProducts]);
+
+
+
+  // LOAD MORE
   function loadMore(category) {
+
     setVisibleCount((prev) => ({
+
       ...prev,
+
       [category]: prev[category] + PRODUCTS_PER_CATEGORY,
+
     }));
+
   }
 
+
+
   return (
-    <div className="w-full min-h-[calc(100vh-100px)] bg-orange-100">
-      {loading ? (
-        <Loader />
-      ) : (
-        <div className="w-full h-full flex flex-col loop bg-white">
-          {Object.keys(groupedProducts).length === 0 ? (
-            <div className="p-8 text-center">No products found.</div>
-          ) : (
-            Object.keys(groupedProducts).map((category) => {
-              const categoryProducts = groupedProducts[category];
-              const visible = visibleCount[category] || PRODUCTS_PER_CATEGORY;
 
-              return (
-                <div
-                  key={category}
-                  className="w-full bg-white rounded-xl mb-6 p-4"
-                >
-                  {/* CATEGORY TITLE */}
-                  <div className="text-xl font-semibold mb-4 capitalize">
-                    {category}
-                  </div>
+    <div className="w-full min-h-screen bg-orange-100">
 
-                  {/* PRODUCTS GRID */}
-                  <div className="flex flex-wrap justify-center">
-                    {categoryProducts.slice(0, visible).map((item, i) => (
-                      <div
-                        key={`${item.productID}-${i}`}
-                        className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5"
-                      >
-                        <ProductCard product={item} />
-                      </div>
-                    ))}
-                  </div>
+      <Header />
 
-                  {/* LOAD MORE BUTTON */}
-                  {visible < categoryProducts.length && (
-                    <div className="w-full flex justify-center mt-4">
-                      <button
-                        onClick={() => loadMore(category)}
-                        className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
-                      >
-                        Load More
-                      </button>
-                    </div>
-                  )}
+      {
+
+        loading ? (
+
+          <Loader />
+
+        ) : (
+
+          <div className="w-full max-w-[1600px] mx-auto p-3">
+
+            {
+
+              Object.keys(groupedProducts).length === 0 ? (
+
+                <div className="text-center p-10">
+
+                  No products found
+
                 </div>
-              );
-            })
-          )}
-        </div>
-      )}
+
+              ) : (
+
+                Object.keys(groupedProducts).map((category) => {
+
+                  const categoryProducts =
+                    groupedProducts[category];
+
+                  const visible =
+                    visibleCount[category] ||
+                    PRODUCTS_PER_CATEGORY;
+
+                  return (
+
+                    <div
+                      key={category}
+                      className="
+                        bg-white
+                        rounded-xl
+                        mb-6
+                        p-4
+                        shadow-sm
+                      "
+                    >
+
+                      {/* CATEGORY TITLE */}
+
+                      <h2 className="
+                        text-xl
+                        font-semibold
+                        mb-4
+                        capitalize
+                      ">
+
+                        {category}
+
+                      </h2>
+
+
+
+                      {/* PRODUCT GRID */}
+
+                      <div className="
+                        flex
+                        flex-wrap
+                        justify-center
+                      ">
+
+                        {
+
+                          categoryProducts
+                          .slice(0, visible)
+                          .map((product, index) => (
+
+                            <div
+                              key={index}
+                              className="
+                                w-1/2
+                                sm:w-1/2
+                                md:w-1/3
+                                lg:w-1/4
+                                xl:w-1/5
+                                p-2
+                              "
+                            >
+
+                              <ProductCard product={product} />
+
+                            </div>
+
+                          ))
+
+                        }
+
+                      </div>
+
+
+
+                      {/* LOAD MORE BUTTON */}
+
+                      {
+
+                        visible < categoryProducts.length && (
+
+                          <div className="
+                            flex
+                            justify-center
+                            mt-4
+                          ">
+
+                            <button
+                              onClick={() => loadMore(category)}
+                              className="
+                                px-6
+                                py-2
+                                bg-orange-500
+                                text-white
+                                rounded-lg
+                                hover:bg-orange-600
+                                transition
+                              "
+                            >
+
+                              Load More
+
+                            </button>
+
+                          </div>
+
+                        )
+
+                      }
+
+                    </div>
+
+                  );
+
+                })
+
+              )
+
+            }
+
+          </div>
+
+        )
+
+      }
+
     </div>
+
   );
+
 }
