@@ -1,253 +1,311 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { Loader } from "../../components/loader";
-import Header, { TtitleBar } from "../../components/header";
+import OrderModal from "../../components/orderInfoModal";
 
 export default function AdminOrdersPage() {
 
-  const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+    const [orders, setOrders] = useState([]);
 
-  const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const token = localStorage.getItem("token");
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    const navigate = useNavigate();
 
-    axios
-      .get(import.meta.env.VITE_API_URL + "/api/orders", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
 
-        console.log(response.data);
+    /*
+    LOAD ORDERS FUNCTION
+    */
+    async function loadOrders() {
 
-        setOrders(response.data);
+        try {
 
-      })
-      .catch((error) => {
+            const token = localStorage.getItem("token");
 
-        console.error("Failed to fetch orders:", error);
+            if (!token) {
+                navigate("/login");
+                return;
+            }
 
-        if (error.response?.status === 401) {
-          localStorage.removeItem("token");
-          navigate("/login");
+            setIsLoading(true);
+
+            const response = await axios.get(
+
+                import.meta.env.VITE_API_URL + "/api/orders",
+
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+
+            );
+
+            setOrders(response.data);
+
+        }
+        catch (err) {
+
+            console.log(err);
+
+            if (err.response?.status === 401) {
+
+                localStorage.removeItem("token");
+
+                navigate("/login");
+
+            }
+
+            else {
+
+                alert("Failed to load orders");
+
+            }
+
+        }
+        finally {
+
+            setIsLoading(false);
+
         }
 
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    }
 
-  }, [navigate]);
 
+    /*
+    RUN ONLY ONCE
+    */
+    useEffect(() => {
 
+        loadOrders();
 
-  return (
+    }, []);
 
-    <div className="w-full min-h-full bg-white">
-      <div className="mx-auto max-w-7xl p-6">
 
-        <div className="rounded-2xl border border-secondary/10 bg-primary shadow-sm">
+    return (
 
-          {/* Header */}
-          <div className="flex items-center justify-between gap-4 border-b border-secondary/10 px-6 py-4">
+        <div className="w-full min-h-full">
 
-            <h1 className="text-lg font-semibold text-secondary">
-              Orders
-            </h1>
+            <OrderModal
 
-            <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-              {orders.length} orders
-            </span>
+                isModalOpen={isModalOpen}
 
-          </div>
+                closeModal={() => setIsModalOpen(false)}
 
+                selectedOrder={selectedOrder}
 
+                refresh={loadOrders}
 
-          {/* Table */}
-          <div className="overflow-x-auto">
+            />
 
-            {isLoading ? (
 
-              <Loader />
+            <div className="mx-auto max-w-7xl p-6">
 
-            ) : (
+                <div className="rounded-2xl border border-secondary/10 bg-primary shadow-sm">
 
-              <table className="w-full min-w-[880px] text-left">
+                    <div className="flex items-center justify-between gap-4 border-b border-secondary/10 px-6 py-4">
 
-                <thead className="bg-secondary text-white">
+                        <h1 className="text-lg font-semibold text-secondary">
 
-                  <tr>
+                            Orders
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase">
-                      Order ID
-                    </th>
+                        </h1>
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase">
-                      Number of Items
-                    </th>
+                        <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase">
-                      Customer Name
-                    </th>
+                            {orders.length} orders
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase">
-                      Email
-                    </th>
+                        </span>
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase">
-                      Phone
-                    </th>
+                    </div>
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase">
-                      Address
-                    </th>
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase">
-                      Total
-                    </th>
+                    <div className="overflow-x-auto">
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase text-center">
-                      Status
-                    </th>
+                        {isLoading ? (
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase text-center">
-                      Date
-                    </th>
+                            <Loader />
 
-                  </tr>
+                        ) : (
 
-                </thead>
+                            <table className="w-full min-w-[880px] text-left">
 
+                                <thead className="bg-secondary text-white">
 
+                                    <tr>
 
-                <tbody className="divide-y divide-secondary/10">
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
 
-                  {orders.length === 0 && (
+                                            Order ID
 
-                    <tr>
+                                        </th>
 
-                      <td colSpan={9} className="px-4 py-12 text-center">
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
 
-                        No orders to display.
+                                            Items
 
-                      </td>
+                                        </th>
 
-                    </tr>
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
 
-                  )}
+                                            Customer
 
+                                        </th>
 
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
 
-                  {orders.map((item) => (
+                                            Email
 
-                    <tr
-                      key={item.orderID}
-                      className="odd:bg-white even:bg-primary hover:bg-accent/5"
-                    >
+                                        </th>
 
-                      <td className="px-4 py-3 font-mono">
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
 
-                        {item.orderID}
+                                            Phone
 
-                      </td>
+                                        </th>
 
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
 
-                      <td className="px-4 py-3">
+                                            Address
 
-                        {item.items?.length || 0} items
+                                        </th>
 
-                      </td>
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
 
+                                            Total
 
-                      <td className="px-4 py-3">
+                                        </th>
 
-                        {item.customerName}
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
 
-                      </td>
+                                            Status
 
+                                        </th>
 
-                      <td className="px-4 py-3">
+                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
 
-                        {item.email}
+                                            Date
 
-                      </td>
+                                        </th>
 
+                                    </tr>
 
-                      <td className="px-4 py-3">
+                                </thead>
 
-                        {item.phone}
 
-                      </td>
+                                <tbody>
 
+                                    {orders.length === 0 && (
 
-                      <td className="px-4 py-3">
+                                        <tr>
 
-                        {item.address}
+                                            <td colSpan={9}
+                                                className="text-center py-10">
 
-                      </td>
+                                                No orders found
 
+                                            </td>
 
-                      <td className="px-4 py-3">
+                                        </tr>
 
-                        {new Intl.NumberFormat("en-LK", {
-                          style: "currency",
-                          currency: "LKR",
-                        }).format(item.total || 0)}
+                                    )}
 
-                      </td>
 
+                                    {orders.map((order) => (
 
-                      <td className="px-4 py-3 text-center">
+                                        <tr
 
-                        {item.status}
+                                            key={order.orderID}
 
-                      </td>
+                                            className="border-b hover:bg-gray-100 cursor-pointer"
 
+                                            onClick={() => {
 
-                      <td className="px-4 py-3 text-center">
+                                                setSelectedOrder(order);
 
-                        {item.createdAt
-                          ? new Date(item.createdAt).toLocaleString("en-LK", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : "-"}
+                                                setIsModalOpen(true);
 
-                      </td>
+                                            }}
 
-                    </tr>
+                                        >
 
-                  ))}
+                                            <td className="px-4 py-3">
 
-                </tbody>
+                                                {order.orderID}
 
-              </table>
+                                            </td>
 
-            )}
+                                            <td className="px-4 py-3">
 
-          </div>
+                                                {order.items.length}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.customerName}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.email}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.phone}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.address}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                LKR {order.total.toFixed(2)}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {order.status}
+
+                                            </td>
+
+                                            <td className="px-4 py-3">
+
+                                                {new Date(order.date).toLocaleDateString()}
+
+                                            </td>
+
+                                        </tr>
+
+                                    ))}
+
+                                </tbody>
+
+                            </table>
+
+                        )}
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
-      </div>
-
-    </div>
-
-  );
+    );
 
 }
-
-
