@@ -1,311 +1,306 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
+import { useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
+import { Loader } from "../components/loader";
+import ProductCard from "../components/productCard";
+import Header from "../components/header";
+import React from "react";
 
-import { Loader } from "../../components/loader";
-import OrderModal from "../../components/orderInfoModal";
+export function ProductPage() {
 
-export default function AdminOrdersPage() {
+  const location = useLocation();
 
-    const [orders, setOrders] = useState([]);
+  const query = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
 
-    const [isLoading, setIsLoading] = useState(true);
+  const searchQuery = (query.get("search") || "").trim().toLowerCase();
+  const categoryQuery = (query.get("category") || "").trim().toLowerCase();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    const [selectedOrder, setSelectedOrder] = useState(null);
+  const PRODUCTS_PER_CATEGORY = 10;
 
-    const navigate = useNavigate();
+  const [visibleCount, setVisibleCount] = useState({});
 
 
-    /*
-    LOAD ORDERS FUNCTION
-    */
-    async function loadOrders() {
+  // LOAD PRODUCTS
+  useEffect(() => {
 
-        try {
+    async function loadProducts() {
 
-            const token = localStorage.getItem("token");
+      try {
 
-            if (!token) {
-                navigate("/login");
-                return;
-            }
+        const res = await axios.get(
+          import.meta.env.VITE_API_URL + "/api/products"
+        );
 
-            setIsLoading(true);
+        const data = res.data || [];
 
-            const response = await axios.get(
+        setProducts(data);
 
-                import.meta.env.VITE_API_URL + "/api/orders",
+        // initialize visible count per category
+        const counts = {};
 
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
+        data.forEach((p) => {
 
-            );
+          const cat = (p.category || "other").toLowerCase();
 
-            setOrders(response.data);
+          if (!counts[cat]) {
 
-        }
-        catch (err) {
+            counts[cat] = PRODUCTS_PER_CATEGORY;
 
-            console.log(err);
+          }
 
-            if (err.response?.status === 401) {
+        });
 
-                localStorage.removeItem("token");
+        setVisibleCount(counts);
 
-                navigate("/login");
+      }
+      catch (err) {
 
-            }
+        console.error(err);
 
-            else {
+        toast.error("Failed to load products");
 
-                alert("Failed to load orders");
+      }
+      finally {
 
-            }
+        setLoading(false);
 
-        }
-        finally {
-
-            setIsLoading(false);
-
-        }
+      }
 
     }
 
+    loadProducts();
 
-    /*
-    RUN ONLY ONCE
-    */
-    useEffect(() => {
+  }, []);
 
-        loadOrders();
 
-    }, []);
 
+  // FILTER PRODUCTS
+  const filteredProducts = useMemo(() => {
 
-    return (
+    return products.filter((p) => {
 
-        <div className="w-full min-h-full">
+      const name =
+        (p.title || p.name || "").toLowerCase();
 
-            <OrderModal
+      const category =
+        (p.category || "").toLowerCase();
 
-                isModalOpen={isModalOpen}
+      const matchSearch =
+        !searchQuery || name.includes(searchQuery);
 
-                closeModal={() => setIsModalOpen(false)}
+      const matchCategory =
+        !categoryQuery || category.includes(categoryQuery);
 
-                selectedOrder={selectedOrder}
+      return matchSearch && matchCategory;
 
-                refresh={loadOrders}
+    });
 
-            />
+  }, [products, searchQuery, categoryQuery]);
 
 
-            <div className="mx-auto max-w-7xl p-6">
 
-                <div className="rounded-2xl border border-secondary/10 bg-primary shadow-sm">
+  // GROUP PRODUCTS BY CATEGORY
+  const groupedProducts = useMemo(() => {
 
-                    <div className="flex items-center justify-between gap-4 border-b border-secondary/10 px-6 py-4">
+    const grouped = {};
 
-                        <h1 className="text-lg font-semibold text-secondary">
+    filteredProducts.forEach((product) => {
 
-                            Orders
+      const cat =
+        (product.category || "other").toLowerCase();
 
-                        </h1>
+      if (!grouped[cat]) {
 
-                        <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+        grouped[cat] = [];
 
-                            {orders.length} orders
+      }
 
-                        </span>
+      grouped[cat].push(product);
 
-                    </div>
+    });
 
+    return grouped;
 
-                    <div className="overflow-x-auto">
+  }, [filteredProducts]);
 
-                        {isLoading ? (
 
-                            <Loader />
 
-                        ) : (
+  // LOAD MORE
+  function loadMore(category) {
 
-                            <table className="w-full min-w-[880px] text-left">
+    setVisibleCount((prev) => ({
 
-                                <thead className="bg-secondary text-white">
+      ...prev,
 
-                                    <tr>
+      [category]: prev[category] + PRODUCTS_PER_CATEGORY,
 
-                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+    }));
 
-                                            Order ID
+  }
 
-                                        </th>
 
-                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
 
-                                            Items
+  return (
 
-                                        </th>
+    <div className="w-full min-h-screen bg-orange-100">
 
-                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+      {
 
-                                            Customer
+        loading ? (
 
-                                        </th>
+          <Loader />
 
-                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+        ) : (
 
-                                            Email
+          <div className="w-full max-w-[1600px] mx-auto p-3">
 
-                                        </th>
+            {
 
-                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
+              Object.keys(groupedProducts).length === 0 ? (
 
-                                            Phone
+                <div className="text-center p-10">
 
-                                        </th>
-
-                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
-
-                                            Address
-
-                                        </th>
-
-                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
-
-                                            Total
-
-                                        </th>
-
-                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
-
-                                            Status
-
-                                        </th>
-
-                                        <th className="px-4 py-3 text-xs font-semibold uppercase">
-
-                                            Date
-
-                                        </th>
-
-                                    </tr>
-
-                                </thead>
-
-
-                                <tbody>
-
-                                    {orders.length === 0 && (
-
-                                        <tr>
-
-                                            <td colSpan={9}
-                                                className="text-center py-10">
-
-                                                No orders found
-
-                                            </td>
-
-                                        </tr>
-
-                                    )}
-
-
-                                    {orders.map((order) => (
-
-                                        <tr
-
-                                            key={order.orderID}
-
-                                            className="border-b hover:bg-gray-100 cursor-pointer"
-
-                                            onClick={() => {
-
-                                                setSelectedOrder(order);
-
-                                                setIsModalOpen(true);
-
-                                            }}
-
-                                        >
-
-                                            <td className="px-4 py-3">
-
-                                                {order.orderID}
-
-                                            </td>
-
-                                            <td className="px-4 py-3">
-
-                                                {order.items.length}
-
-                                            </td>
-
-                                            <td className="px-4 py-3">
-
-                                                {order.customerName}
-
-                                            </td>
-
-                                            <td className="px-4 py-3">
-
-                                                {order.email}
-
-                                            </td>
-
-                                            <td className="px-4 py-3">
-
-                                                {order.phone}
-
-                                            </td>
-
-                                            <td className="px-4 py-3">
-
-                                                {order.address}
-
-                                            </td>
-
-                                            <td className="px-4 py-3">
-
-                                                LKR {order.total.toFixed(2)}
-
-                                            </td>
-
-                                            <td className="px-4 py-3">
-
-                                                {order.status}
-
-                                            </td>
-
-                                            <td className="px-4 py-3">
-
-                                                {new Date(order.date).toLocaleDateString()}
-
-                                            </td>
-
-                                        </tr>
-
-                                    ))}
-
-                                </tbody>
-
-                            </table>
-
-                        )}
-
-                    </div>
+                  No products found
 
                 </div>
 
-            </div>
+              ) : (
 
-        </div>
+                Object.keys(groupedProducts).map((category) => {
 
-    );
+                  const categoryProducts =
+                    groupedProducts[category];
+
+                  const visible =
+                    visibleCount[category] ||
+                    PRODUCTS_PER_CATEGORY;
+
+                  return (
+
+                    <div
+                      key={category}
+                      className="
+                        bg-white
+                        rounded-xl
+                        mb-6
+                        p-4
+                        shadow-sm
+                      "
+                    >
+
+                      {/* CATEGORY TITLE */}
+
+                      <h2 className="
+                        text-xl
+                        font-semibold
+                        mb-4
+                        capitalize
+                      ">
+
+                        {category}
+
+                      </h2>
+
+
+
+                      {/* PRODUCT GRID */}
+
+                      <div className="
+                        flex
+                        flex-wrap
+                        justify-center
+                      ">
+
+                        {
+
+                          categoryProducts
+                          .slice(0, visible)
+                          .map((product, index) => (
+
+                            <div
+                              key={index}
+                              className="
+                                w-1/2
+                                sm:w-1/2
+                                md:w-1/3
+                                lg:w-1/4
+                                xl:w-1/5
+                                p-2
+                              "
+                            >
+
+                              <ProductCard product={product} />
+
+                            </div>
+
+                          ))
+
+                        }
+
+                      </div>
+
+
+
+                      {/* LOAD MORE BUTTON */}
+
+                      {
+
+                        visible < categoryProducts.length && (
+
+                          <div className="
+                            flex
+                            justify-center
+                            mt-4
+                          ">
+
+                            <button
+                              onClick={() => loadMore(category)}
+                              className="
+                                px-6
+                                py-2
+                                bg-orange-500
+                                text-white
+                                rounded-lg
+                                hover:bg-orange-600
+                                transition
+                              "
+                            >
+
+                              Load More
+
+                            </button>
+
+                          </div>
+
+                        )
+
+                      }
+
+                    </div>
+
+                  );
+
+                })
+
+              )
+
+            }
+
+          </div>
+
+        )
+
+      }
+
+    </div>
+
+  );
 
 }
