@@ -151,8 +151,6 @@ export function ProductPage() {
 
     <div className="w-full min-h-screen bg-orange-100">
 
-      <Header />
-
       {
 
         loading ? (
