@@ -196,14 +196,11 @@ export default function AddProductPage() {
 								}}
 								className="h-11 rounded-xl border border-secondary/20 bg-white px-3 text-secondary outline-none focus:border-accent focus:ring-4 focus:ring-accent/20 transition"
 							>
-								  <option value="one color saree">ONE Color Saree</option>
-								<option value="two color saree">TWO Color Saree</option>
-								<option value="three color saree">THREE Color Saree</option>
-								<option value="four color saree">FOUR Color Saree</option>
-								<option value="five color saree">FIVE Color Saree</option>
-								<option value="six color saree">SIX Color Saree</option>
-								<option value="seven color saree">SEVEN Color Saree</option>
-								<option value="eight color saree">EIGHT Color Saree</option>
+								  <option value="sarees">Sarees</option>
+								<option value="froks">Froks</option>
+								<option value="slippers">Slippers</option>
+								<option value="shirt">Shirt</option>
+								
 
 						</select>
 						</label>
