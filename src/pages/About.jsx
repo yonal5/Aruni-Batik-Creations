@@ -1,10 +1,12 @@
 import Header from "../components/header";
+import CartIcon from "../components/CartIcon";
+
 
 export default function About() {
   return (
     <div>
       <Header />
-
+      <CartIcon/>
 
       <div className="min-h-screen bg-gradient-to-b from-primary via-blue-300 to-primary text-black flex flex-col items-center justify-center px-6 py-16">
         <div className="max-w-4xl text-center">
@@ -30,4 +32,5 @@ export default function About() {
     </div>
   );
 }
+
 
