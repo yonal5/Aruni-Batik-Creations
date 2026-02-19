@@ -62,9 +62,6 @@ export default function AdminOrdersPage() {
   return (
 
     <div className="w-full min-h-screen bg-white">
-
-      <Header />
-
       <TtitleBar />
 
 
@@ -255,3 +252,4 @@ export default function AdminOrdersPage() {
   );
 
 }
+
