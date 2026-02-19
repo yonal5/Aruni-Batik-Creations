@@ -4,12 +4,13 @@ import { FaShoppingCart } from "react-icons/fa";
 
 export default function CartIcon() {
   const navigate = useNavigate();
-  const [position, setPosition] = useState({ top: 50, left: 50 });
+  const [position, setPosition] = useState({ top: window.innerHeight - 100, left: window.innerWidth - 100 });
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   // Start dragging
   const startDrag = (e) => {
+    e.preventDefault();
     setDragging(true);
     setOffset({
       x: e.clientX - position.left,
@@ -31,7 +32,7 @@ export default function CartIcon() {
 
   // Click handler to go to cart page
   const goToCart = () => {
-    navigate("/cart"); // Change "/cart" if your route is different
+    navigate("/cart");
   };
 
   return (
@@ -42,7 +43,7 @@ export default function CartIcon() {
       onMouseLeave={endDrag}
       onClick={goToCart}
       style={{
-        position: "absolute",
+        position: "fixed",
         top: position.top,
         left: position.left,
         cursor: dragging ? "grabbing" : "grab",
