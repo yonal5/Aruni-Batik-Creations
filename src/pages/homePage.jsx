@@ -19,6 +19,7 @@ import ReviewsPage from "./reviews";
 import SearchResultsPage from "./searchResults";
 import CheckoutPage from "./CheckoutPage";
 import CartIcon from "../components/CartIcon";
+import AdminOrdersPage from "./OrdersPage";
 
 export default function HomePage() {
   const location = useLocation();
@@ -59,7 +60,7 @@ export default function HomePage() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/chat" element={<ChatPage />} />
-
+        <Route path="/orders" element={<AdminOrdersPage />} />        
         
         <Route path="/*" element={<NotFoundPage/>} />
       </Routes>
