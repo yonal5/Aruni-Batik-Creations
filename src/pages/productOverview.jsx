@@ -32,15 +32,11 @@ export default function ProductOverview({ user }) {
   }, [id]);
 
   /* ---------------- STOCK CHECK ---------------- */
-  const isOutOfStock =
-    !product || product.stock === undefined || product.stock <= 0;
+  const isOutOfStock = product?.stock <= 0;
 
   /* ---------------- BUY NOW ---------------- */
   const sendSingleProductToAdmin = async () => {
-    if (!product || isOutOfStock) {
-      toast.error("Product is out of stock");
-      return;
-    }
+    if (!product || isOutOfStock) return;
 
     let userNumber = user?.id;
 
@@ -67,7 +63,7 @@ export default function ProductOverview({ user }) {
       await axios.post(`${BASE_URL}/api/chat`, {
         guestId,
         customerName,
-        message: `🛒 User-${userNumber} Checkout Items:\n${productMessage}`,
+        message: `🛒User-${userNumber} Checkout Items:\n${productMessage} `,
       });
 
       navigate("/chat");
@@ -92,7 +88,7 @@ export default function ProductOverview({ user }) {
     <div className="w-full min-h-[calc(100vh-100px)] bg-gray-50 py-6 px-4 sm:px-6 lg:px-20 text-gray-800">
       <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col lg:flex-row">
 
-        {/* Image Section */}
+        {/* Image */}
         <div className="lg:w-1/2 w-full bg-gray-100 flex justify-center items-center p-4 sm:p-6">
           <ImageSlider
             images={product?.images || []}
@@ -101,7 +97,7 @@ export default function ProductOverview({ user }) {
           />
         </div>
 
-        {/* Details Section */}
+        {/* Details */}
         <div className="lg:w-1/2 w-full p-6 sm:p-8 flex flex-col justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">
@@ -113,10 +109,7 @@ export default function ProductOverview({ user }) {
             </p>
 
             <p className="text-gray-600 mb-4">
-              Category:{" "}
-              <span className="font-semibold">
-                {product.category}
-              </span>
+              Category: <span className="font-semibold">{product.category}</span>
             </p>
 
             {/* Price */}
@@ -140,7 +133,7 @@ export default function ProductOverview({ user }) {
               )}
             </div>
 
-            {/* Stock Status */}
+            {/* STOCK STATUS */}
             <div className="mb-4">
               {isOutOfStock ? (
                 <span className="text-red-600 font-semibold text-lg">
@@ -161,7 +154,6 @@ export default function ProductOverview({ user }) {
 
           {/* Buttons */}
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
-
             <button
               disabled={isOutOfStock}
               onClick={() => {
@@ -170,12 +162,11 @@ export default function ProductOverview({ user }) {
                 toast.success("Added to cart");
                 navigate("/cart");
               }}
-              className={`w-full sm:w-1/2 py-3 rounded-xl font-semibold shadow-md transition
-                ${
-                  isOutOfStock
-                    ? "bg-gray-400 cursor-not-allowed text-white"
-                    : "bg-accent text-white hover:shadow-lg"
-                }`}
+              className={`w-full sm:w-1/2 py-3 rounded-xl font-semibold shadow-md ${
+                isOutOfStock
+                  ? "bg-gray-400 cursor-not-allowed text-white"
+                  : "bg-accent text-white hover:shadow-lg"
+              }`}
             >
               {isOutOfStock ? "Out of Stock" : "Add to Cart"}
             </button>
@@ -183,26 +174,21 @@ export default function ProductOverview({ user }) {
             <button
               disabled={isOutOfStock}
               onClick={sendSingleProductToAdmin}
-              className={`w-full sm:w-1/2 py-3 rounded-xl font-semibold shadow-md transition
-                ${
-                  isOutOfStock
-                    ? "border border-gray-400 text-gray-400 cursor-not-allowed"
-                    : "border border-accent text-accent hover:bg-accent hover:text-white"
-                }`}
+              className={`w-full sm:w-1/2 py-3 rounded-xl font-semibold shadow-md ${
+                isOutOfStock
+                  ? "border border-gray-400 text-gray-400 cursor-not-allowed"
+                  : "border border-accent text-accent hover:bg-accent hover:text-white"
+              }`}
             >
               {isOutOfStock ? "Unavailable" : "Buy Now"}
             </button>
-
           </div>
         </div>
       </div>
 
-      {/* Full Screen Zoom */}
+      {/* Image Zoom */}
       {zoomImage && (
-        <FullScreenZoom
-          image={zoomImage}
-          onClose={() => setZoomImage(null)}
-        />
+        <FullScreenZoom image={zoomImage} onClose={() => setZoomImage(null)} />
       )}
     </div>
   );
