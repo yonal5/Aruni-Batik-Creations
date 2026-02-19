@@ -49,11 +49,7 @@ export default function CartPage({ user }) {
             </button>
 
             <div className="w-full h-44 bg-gray-100 rounded-xl flex items-center justify-center">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="max-h-full max-w-full object-contain"
-              />
+               <img className="h-[100px] lg:h-full aspect-square object-cover" src={item.image}/>
             </div>
 
             <div className="flex-1 p-4 flex flex-col justify-between">
@@ -106,3 +102,4 @@ export default function CartPage({ user }) {
     </div>
   );
 }
+
