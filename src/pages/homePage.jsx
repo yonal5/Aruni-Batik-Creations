@@ -18,7 +18,7 @@ import ReturnsPage from "./returns";
 import ReviewsPage from "./reviews";
 import SearchResultsPage from "./searchResults";
 import CheckoutPage from "./CheckoutPage";
-import CartIcon from "./components/CartIcon";
+import CartIcon from "../components/CartIcon";
 
 export default function HomePage() {
   const location = useLocation();
