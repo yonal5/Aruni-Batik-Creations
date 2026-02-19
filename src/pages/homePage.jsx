@@ -18,9 +18,7 @@ import ReturnsPage from "./returns";
 import ReviewsPage from "./reviews";
 import SearchResultsPage from "./searchResults";
 import CheckoutPage from "./CheckoutPage";
-  
-
-
+import CartIcon from "./components/CartIcon";
 
 export default function HomePage() {
   const location = useLocation();
@@ -28,6 +26,7 @@ export default function HomePage() {
   return (
     <div className="w-auto h-auto bg-white">
       <Header/>
+      <CartIcon/>
       {location.pathname === "/" && (
         <div className="relative w-full md:h-full overflow-hidden bg-black shadow-lg">
           <img
