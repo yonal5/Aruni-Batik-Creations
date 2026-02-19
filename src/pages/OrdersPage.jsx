@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "../components/loader";
 import Header, { TtitleBar } from "../components/header";
+import CartIcon from "../components/CartIcon";
 
 export default function AdminOrdersPage() {
 
@@ -63,7 +64,7 @@ export default function AdminOrdersPage() {
 
     <div className="w-full min-h-screen bg-white">
       <Header />
-
+      <CartIcon/>
       <div className="mx-auto max-w-7xl p-6">
 
         <div className="rounded-2xl border border-secondary/10 bg-primary shadow-sm">
@@ -251,5 +252,6 @@ export default function AdminOrdersPage() {
   );
 
 }
+
 
 
